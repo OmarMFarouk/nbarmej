@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="لوحة تحكم نبرمج">
+  <style>
+@media (prefers-reduced-motion:no-preference){
+.bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow 3.6s cubic-bezier(.3,.7,.2,1) infinite}
+.b2{animation-delay:.12s}.b3{animation-delay:.24s}.b4{animation-delay:.36s}.b5{animation-delay:.48s}.b6{animation-delay:.6s}.b7{animation-delay:.72s}
+@keyframes grow{0%{transform:scaleY(.05)}30%,80%{transform:scaleY(1)}100%{transform:scaleY(.05)}}
+.sweep{animation:sweep 3.2s ease-in-out infinite}
+@keyframes sweep{0%{transform:translateX(-300px)}60%,100%{transform:translateX(800px)}}
+.line{animation:pulse 1.8s ease-in-out infinite}.l2{animation-delay:.3s}.l3{animation-delay:.6s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.float{animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translate(30px,760px) rotate(4deg)}50%{transform:translate(30px,742px) rotate(2deg)}}
+.sun{transform-box:fill-box;transform-origin:center;animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.ok{transform-box:fill-box;transform-origin:center;animation:pop 2.4s ease-in-out infinite}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.nav{animation:nav 4s steps(1) infinite}.n2{animation-delay:1s}.n3{animation-delay:2s}.n4{animation-delay:3s}
+@keyframes nav{0%{fill:#FF5A1F}25%,100%{fill:#2A2926}}
+.dot{animation:blink 1.4s steps(1) infinite}
+@keyframes blink{50%{opacity:.2}}
+.btn{transform-box:fill-box;transform-origin:left center;animation:btn 3.2s ease-in-out infinite}
+@keyframes btn{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.25)}}
+}</style>
+<defs><linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="win"><rect width="680" height="560" rx="18"/></clipPath></defs><rect width="800" height="1000" fill="#0E0E0C"/>
+  <g stroke="#2A2926" stroke-width="1"><path d="M0 100h800M0 200h800M0 300h800M0 400h800M0 500h800M0 600h800M0 700h800M0 800h800M0 900h800M100 0v1000M200 0v1000M300 0v1000M400 0v1000M500 0v1000M600 0v1000M700 0v1000"/></g>
+  <circle class="sun" cx="90" cy="130" r="150" fill="#FF5A1F"/>
+  <g transform="translate(60 210)">
+    <rect x="12" y="14" width="680" height="560" rx="18" fill="#FF5A1F"/>
+    <rect width="680" height="560" rx="18" fill="#F3F0E8" stroke="#0E0E0C" stroke-width="4"/>
+    <path d="M0 52h680" stroke="#0E0E0C" stroke-width="3"/>
+    <circle class="dot" cx="634" cy="26" r="7" fill="#FF5A1F"/><circle cx="610" cy="26" r="7" fill="#0E0E0C"/><circle cx="586" cy="26" r="7" fill="#9A968C"/>
+    <rect x="40" y="14" width="300" height="24" rx="12" fill="#E4E0D4"/>
+    <rect x="520" y="52" width="160" height="508" fill="#0E0E0C"/>
+    <rect x="540" y="76" width="44" height="44" rx="10" fill="#FF5A1F"/>
+    <text x="562" y="107" font-family="monospace" font-size="22" font-weight="700" fill="#0E0E0C" text-anchor="middle">N/</text>
+    <rect class="nav" x="540" y="150" width="120" height="14" rx="7"/><rect class="nav n2" x="540" y="184" width="100" height="14" rx="7"/><rect class="nav n3" x="540" y="218" width="110" height="14" rx="7"/><rect class="nav n4" x="540" y="252" width="80" height="14" rx="7"/>
+    <g>
+      <rect x="28" y="76" width="140" height="92" rx="12" fill="#fff" stroke="#0E0E0C" stroke-width="2.5"/>
+      <rect x="44" y="94" width="56" height="10" rx="5" fill="#9A968C"/><rect x="44" y="118" width="88" height="26" rx="6" fill="#0E0E0C"/>
+      <rect x="180" y="76" width="140" height="92" rx="12" fill="#FF5A1F" stroke="#0E0E0C" stroke-width="2.5"/>
+      <rect x="196" y="94" width="56" height="10" rx="5" fill="#0E0E0C" opacity=".5"/><rect x="196" y="118" width="72" height="26" rx="6" fill="#0E0E0C"/>
+      <rect x="332" y="76" width="140" height="92" rx="12" fill="#fff" stroke="#0E0E0C" stroke-width="2.5"/>
+      <rect x="348" y="94" width="56" height="10" rx="5" fill="#9A968C"/><rect x="348" y="118" width="100" height="26" rx="6" fill="#0E0E0C"/>
+    </g>
+    <rect x="28" y="190" width="444" height="230" rx="12" fill="#fff" stroke="#0E0E0C" stroke-width="2.5"/>
+    <rect x="48" y="210" width="110" height="12" rx="6" fill="#9A968C"/>
+    <g fill="#0E0E0C"><rect class="bar b1" x="56" y="330" width="40" height="70" rx="6"/><rect class="bar b2" x="116" y="300" width="40" height="100" rx="6"/><rect class="bar b3" x="176" y="316" width="40" height="84" rx="6"/><rect class="bar b4" x="236" y="272" width="40" height="128" rx="6"/></g>
+    <g fill="#FF5A1F"><rect class="bar b5" x="296" y="246" width="40" height="154" rx="6"/><rect class="bar b6" x="356" y="230" width="40" height="170" rx="6"/><rect class="bar b7" x="416" y="258" width="40" height="142" rx="6"/></g>
+    <rect class="line" x="28" y="440" width="444" height="14" rx="7" fill="#E4E0D4"/><rect class="line l2" x="28" y="468" width="360" height="14" rx="7" fill="#E4E0D4"/><rect class="line l3" x="28" y="496" width="404" height="14" rx="7" fill="#E4E0D4"/>
+    <rect class="btn" x="28" y="524" width="150" height="22" rx="11" fill="#FF5A1F"/>
+  </g>
+  <g class="float" transform="translate(30 760) rotate(4)">
+    <rect x="10" y="10" width="270" height="130" rx="16" fill="#0E0E0C"/>
+    <rect width="270" height="130" rx="16" fill="#fff" stroke="#0E0E0C" stroke-width="4"/>
+    <circle class="ok" cx="224" cy="48" r="22" fill="#25D366"/>
+    <path d="M214 48l7 7 12-14" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="24" y="34" width="150" height="14" rx="7" fill="#0E0E0C"/><rect x="24" y="58" width="110" height="12" rx="6" fill="#9A968C"/>
+    <rect x="24" y="88" width="120" height="28" rx="14" fill="#FF5A1F"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ar" dir="rtl" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>لوحة التحكم — نُبرمِج</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lemonada:wght@500;600;700&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+      // نفس ثيم ولوحة ألوان الموقع قبل الرسم
+      try {
+        var d = document.documentElement.dataset
+        d.theme = localStorage.theme || 'light'
+        d.palette = localStorage.palette || 'orange'
+        document.documentElement.dir = (localStorage.adLang || 'ar') === 'ar' ? 'rtl' : 'ltr'
+      } catch (e) { document.documentElement.dataset.theme = 'light' }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/admin/main.jsx"></script>
+  </body>
+</html>
