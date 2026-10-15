@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SiteProvider, useSite } from './SiteContext'
 import { SocialIcon, StartIcon } from './icons'
-import { arDigits, safeUrl } from './content'
+import { arDigits, safeUrl, servicePath } from './content'
 
 const countLabel = (n) => (n === 0 ? '' : n === 1 ? 'خدمة واحدة' : n === 2 ? 'خدمتان' : `${n} خدمات`)
 
@@ -39,10 +39,10 @@ function useReveal() {
   }, [])
 }
 
-function Logo() {
+function Logo({ href = '#top' }) {
   const { brand } = useSite()
   return (
-    <a href="#top" className="logo" aria-label={`${brand.name} — الرئيسية`}>
+    <a href={href} className="logo" aria-label={`${brand.name} — الرئيسية`}>
       <span className="logo-mark" aria-hidden="true">N/</span>
       <span className="logo-word">{brand.mark}</span>
     </a>
@@ -74,17 +74,17 @@ function Img({ src, alt, label, eager }) {
     : <div className="img-ph" role="img" aria-label={alt}><span>{label}</span></div>
 }
 
-function Header() {
+function Header({ home = '' }) {
   const { wa, contact, sections } = useSite()
   const [open, setOpen] = useState(false)
   const links = [['خدماتنا', '#services'], ['أعمالنا', '#work'], ['آلية العمل', '#process'], ['الأسعار', '#pricing'], ['الأسئلة الشائعة', '#faq']].filter(([, h]) => !sections[h.slice(1)]?.off)
   return (
     <header className="header">
       <div className="wrap header-in">
-        <Logo />
+        <Logo href={home ? '/' : '#top'} />
         <nav className={open ? 'nav open' : 'nav'} aria-label="التنقل الرئيسي">
-          {links.map(([t, h]) => <a key={h} href={h} onClick={() => setOpen(false)}>{t}</a>)}
-          {!sections.quote.off && <a href="#quote" className="nav-quote" onClick={() => setOpen(false)}>اطلب عرض سعر</a>}
+          {links.map(([t, h]) => <a key={h} href={home + h} onClick={() => setOpen(false)}>{t}</a>)}
+          {!sections.quote.off && <a href={home + '#quote'} className="nav-quote" onClick={() => setOpen(false)}>اطلب عرض سعر</a>}
         </nav>
         <div className="header-actions">
           <ThemeToggle />
@@ -229,9 +229,12 @@ function Services() {
             <h3>{s.title}</h3>
             <p>{s.text}</p>
             <ul className="chips">{(s.tags || []).map((t, j) => <li key={j}>{t}</li>)}</ul>
-            <a className="link" href={wa(`السلام عليكم، أرغب بعرض سعر لخدمة: ${s.title}`)} target="_blank" rel="noopener">
-              {s.cta || sec.cta} {Icon.arrow}
-            </a>
+            <div className="service-links">
+              <a className="link" href={wa(`السلام عليكم، أرغب بعرض سعر لخدمة: ${s.title}`)} target="_blank" rel="noopener">
+                {s.cta || sec.cta} {Icon.arrow}
+              </a>
+              {servicePath(s) && <a className="link link-muted" href={servicePath(s)}>تفاصيل الخدمة</a>}
+            </div>
           </article>
         ))}
       </div>
@@ -480,12 +483,12 @@ function Footer() {
 }
 
 // وسائل التواصل ظاهرة دائمًا: شريط جانبي على الحاسب، وشريط سفلي على الجوال
-function Dock() {
+function Dock({ home = '' }) {
   const { contact: CONTACT, wa } = useSite()
   return (
     <div className="dock" role="complementary" aria-label="تواصل معنا">
       <a className="dock-wa" href={wa(CONTACT.waMessage)} target="_blank" rel="noopener" aria-label="واتساب">{Icon.wa}<span>واتساب</span></a>
-      <a className="dock-quote" href="#quote" aria-label="اطلب عرض سعر">{Icon.quote}<span>عرض سعر</span></a>
+      <a className="dock-quote" href={home + '#quote'} aria-label="اطلب عرض سعر">{Icon.quote}<span>عرض سعر</span></a>
     </div>
   )
 }
@@ -530,6 +533,61 @@ function Page() {
   )
 }
 
-export default function App({ initial }) {
-  return <SiteProvider initial={initial}><Page /></SiteProvider>
+// صفحة خدمة مستقلة: /services/<slug>/ — تُولَّد كملف HTML لكل خدمة وقت البناء
+function ServicePage({ slug }) {
+  const { services, brand, wa } = useSite()
+  const s = services.find((x) => x.slug === slug)
+  useEffect(() => { if (s) document.title = `${s.seoTitle || s.title} | ${brand.name}` }, [s, brand.name])
+  if (!s) {
+    return (
+      <>
+        <Header home="/" />
+        <main id="main" className="wrap svc-page"><h1>الخدمة غير موجودة</h1><a className="btn btn-primary" href="/#services">كل الخدمات</a></main>
+        <Footer />
+      </>
+    )
+  }
+  const others = services.filter((x) => x !== s && x.slug)
+  return (
+    <>
+      <a className="skip" href="#main">تخطَّ إلى المحتوى</a>
+      <Header home="/" />
+      <main id="main" className="wrap svc-page">
+        <nav className="crumbs" aria-label="مسار التنقل"><a href="/">الرئيسية</a> / <a href="/#services">خدماتنا</a> / <span aria-current="page">{s.title}</span></nav>
+        <div className="svc-hero">
+          <div>
+            <h1>{s.seoTitle || s.title}</h1>
+            <p className="svc-lead">{s.text}</p>
+            <ul className="chips">{(s.tags || []).map((t, j) => <li key={j}>{t}</li>)}</ul>
+            <div className="svc-ctas">
+              <a className="btn btn-primary" href={wa(`السلام عليكم، أرغب بعرض سعر لخدمة: ${s.title}`)} target="_blank" rel="noopener">{Icon.wa} اطلب عرض سعر</a>
+              <a className="btn btn-ghost" href="/#quote">جهّز طلبك بالتفصيل</a>
+            </div>
+          </div>
+          <div className="service-img"><Img src={s.img} alt={`${s.title} — ${brand.name}`} label="N/" eager /></div>
+        </div>
+        {s.about && <section className="svc-about">{s.about.split('\n').filter(Boolean).map((p, i) => <p key={i}>{p}</p>)}</section>}
+        {s.features?.length > 0 && (
+          <section className="svc-features">
+            <h2>ماذا تحصل عليه</h2>
+            <ul>{s.features.map((f, i) => <li key={i}>{f}</li>)}</ul>
+          </section>
+        )}
+        {others.length > 0 && (
+          <section className="svc-others">
+            <h2>خدمات أخرى</h2>
+            <ul>{others.map((o) => <li key={o.slug}><a className="link" href={servicePath(o)}>{o.title} {Icon.arrow}</a></li>)}</ul>
+          </section>
+        )}
+        <FinalCta />
+      </main>
+      <Footer />
+      <Dock home="/" />
+    </>
+  )
+}
+
+export default function App({ initial, path = typeof location === 'undefined' ? '/' : location.pathname }) {
+  const m = path.match(/^\/services\/([a-z0-9-]+)\/?$/)
+  return <SiteProvider initial={initial}>{m ? <ServicePage slug={m[1]} /> : <Page />}</SiteProvider>
 }

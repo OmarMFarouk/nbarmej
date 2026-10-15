@@ -56,7 +56,7 @@ export const PAGES = {
     fields: [T('الاسم|Name', 'name', { wide: true }), T('السعر|Price', 'price', { hint: 'مثال: تبدأ من ٢٬٤٠٠ ريال|e.g. Starts from 2,400' }), T('نص الزر|Button text', 'cta'), TA('الوصف|Description', 'text', { wide: true })],
   },
   services: {
-    title: 'الخدمات|Services', icon: 'layers', kind: 'list', key: 'services', blank: { img: '', title: '', text: '', tags: [], cta: '' },
+    title: 'الخدمات|Services', icon: 'layers', kind: 'list', key: 'services', blank: { img: '', title: '', text: '', tags: [], cta: '', slug: '', seoTitle: '', seoDesc: '', about: '', features: [] },
     itemTitle: (x) => x.title, itemImg: 'img',
     fields: [
       { type: 'image', label: 'الصورة|Image', k: 'img', wide: true },
@@ -64,6 +64,12 @@ export const PAGES = {
       TA('الوصف|Description', 'text', { wide: true }),
       { type: 'tags', label: 'الوسوم|Tags', k: 'tags', wide: true },
       T('نص الزر (فارغ = الافتراضي)|Button text (empty = default)', 'cta'),
+      { type: 'heading', label: 'صفحة الخدمة|Service page' },
+      T('الرابط (إنجليزي، مثل seo)|URL slug (e.g. seo)', 'slug', { ltr: true, hint: '/services/slug/ — يتطلب نشرًا جديدًا ليظهر لمحركات البحث|Needs a new deploy to reach search engines' }),
+      T('عنوان الصفحة في جوجل|Page title (Google)', 'seoTitle', { wide: true }),
+      TA('وصف الصفحة في جوجل|Meta description (Google)', 'seoDesc', { wide: true }),
+      TA('نص الصفحة (كل سطر فقرة)|Page text (one paragraph per line)', 'about', { wide: true, rows: 6 }),
+      { type: 'tags', label: 'ماذا تحصل عليه|What you get', k: 'features', wide: true },
     ],
   },
   projects: {
