@@ -1,0 +1,55 @@
+# يبني الموقع ويرفعه إلى Hostinger عبر SSH عند كل دفع إلى main (أو يدويًا من تبويب Actions)
+# الأسرار المطلوبة (Settings → Secrets and variables → Actions):
+#   SSH_HOST  عنوان IP من hPanel → Advanced → SSH Access
+#   SSH_PORT  المنفذ (Hostinger عادةً 65002)
+#   SSH_USER  اسم المستخدم (مثل u123456789)
+#   SSH_KEY   المفتاح الخاص المقابل للمفتاح العام "claude-code" المضاف في hPanel
+#   DEPLOY_PATH  (اختياري) مجلد الموقع، الافتراضي domains/nbarmej.com/public_html
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${SSH_PORT:-65002}" "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      # uploads/ (صور لوحة التحكم) و.htaccess تبقى كما هي على الخادم؛ data/ خارج public_html أصلًا
+      # assets/ تُستبدل بالكامل لحذف الملفات القديمة؛ باقي الملفات تُحدَّث دون حذف
+      - name: Upload
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEST="${DEPLOY_PATH:-domains/nbarmej.com/public_html}"
+          SSH="ssh -i ~/.ssh/id_deploy -p ${SSH_PORT:-65002}"
+          rsync -rlz --exclude uploads/ --exclude .htaccess --exclude assets/ -e "$SSH" dist/ "$SSH_USER@$SSH_HOST:$DEST/"
+          rsync -rlz --delete -e "$SSH" dist/assets/ "$SSH_USER@$SSH_HOST:$DEST/assets/"
