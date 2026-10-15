@@ -441,3 +441,24 @@ button.work-zoom { display: block; width: 100%; padding: 0; position: relative; 
   .lb-stage { aspect-ratio: 1.212; } /* الصورة 4:3 → ارتفاع أكبر بـ10٪ */
   .lb-stage img { height: 100%; max-height: none; }
 }
+
+/* صفحات الخدمات */
+.service-links { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.link-muted { color: var(--muted); }
+.svc-page { padding-top: clamp(32px, 6vw, 72px); }
+.crumbs { font-size: .9rem; opacity: .75; margin-bottom: 28px; }
+.crumbs a:hover { color: var(--accent-text); }
+.svc-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(24px, 5vw, 64px); align-items: center; }
+.svc-hero h1 { font-size: clamp(2.2rem, 5.5vw, 4.2rem); line-height: 1.02; letter-spacing: -.04em; margin-bottom: 18px; }
+.svc-lead { font-size: 1.15rem; max-width: 52ch; margin-bottom: 18px; }
+.svc-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.svc-hero .service-img img { width: 100%; border-radius: 20px; }
+.svc-about { max-width: 72ch; margin-top: clamp(48px, 7vw, 90px); font-size: 1.1rem; line-height: 1.9; }
+.svc-about p + p { margin-top: 1em; }
+.svc-features, .svc-others { margin-top: clamp(48px, 7vw, 90px); }
+.svc-features h2, .svc-others h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); letter-spacing: -.03em; margin-bottom: 22px; }
+.svc-features ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.svc-features li { border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; font-weight: 600; }
+.svc-features li::before { content: '✳ '; color: var(--accent-text); }
+.svc-others ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 28px; }
+@media (max-width: 760px) { .svc-hero { grid-template-columns: 1fr; } }

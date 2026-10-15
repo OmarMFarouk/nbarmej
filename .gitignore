@@ -28,3 +28,4 @@ public/uploads
 # local snapshots
 backups
 .claude
+content.json

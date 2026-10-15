@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { DEFAULTS, merge, formatHours, schemaHours, safeUrl } from './content'
+import { DEFAULTS, merge, formatHours, schemaHours, safeUrl, withPages } from './content'
 
 const Ctx = createContext(DEFAULTS)
 export const useSite = () => useContext(Ctx)
@@ -38,7 +38,7 @@ function syncSchema(c) {
 
 const LISTS = ['stats', 'socials', 'services', 'projects', 'process', 'faq', 'start', 'points', 'pricing']
 // العناصر المعطّلة من لوحة التحكم (off) لا تصل للموقع
-export const active = (c) => { const o = { ...c }; for (const k of LISTS) o[k] = (c[k] || []).filter((x) => !x.off); return o }
+export const active = (c) => { const o = { ...c }; for (const k of LISTS) o[k] = (c[k] || []).filter((x) => !x.off); o.services = withPages(o.services); return o }
 
 // initial: محتوى مُمرَّر وقت البناء (prerender). البداية دائمًا بنفس ما رُسم في HTML حتى يتطابق الـhydration، ثم الكاش ثم الـAPI
 export function SiteProvider({ initial = DEFAULTS, children }) {

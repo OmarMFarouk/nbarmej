@@ -27,7 +27,13 @@ jobs:
           cache: npm
 
       - run: npm ci
+      # المحتوى الحالي من لوحة التحكم حتى تُبنى صفحات الخدمات بنصوصها المحدّثة (يُتجاهل إن فشل الطلب)
+      - name: Fetch live content
+        run: curl -fsS --max-time 20 "https://nbarmej.com/api/?a=content" -o content.json || rm -f content.json
+
       - run: npm run build
+        env:
+          CONTENT_JSON: content.json
 
       - name: Set up SSH
         env:
