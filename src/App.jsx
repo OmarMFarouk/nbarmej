@@ -50,7 +50,8 @@ function Logo() {
 }
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState(document.documentElement.dataset.theme)
+  const [theme, setTheme] = useState('light') // نفس الـHTML المُولَّد مسبقًا، ثم نقرأ الثيم الفعلي
+  useEffect(() => setTheme(document.documentElement.dataset.theme), [])
   const flip = () => {
     const t = theme === 'dark' ? 'light' : 'dark'
     document.documentElement.dataset.theme = t
@@ -429,10 +430,11 @@ function Faq() {
           <details key={i}><summary>{x.q}</summary><p>{x.a}</p></details>
         ))}
       </div>
-      <script type="application/ld+json">{JSON.stringify({
+      {/* innerHTML وليس نصًا: React يهرّب علامات التنصيص في الـHTML المُولَّد فيفسد الـJSON */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         '@context': 'https://schema.org', '@type': 'FAQPage',
         mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })),
-      })}</script>
+      }).replace(/</g, '\\u003c') }} />
     </section>
   )
 }
@@ -528,6 +530,6 @@ function Page() {
   )
 }
 
-export default function App() {
-  return <SiteProvider><Page /></SiteProvider>
+export default function App({ initial }) {
+  return <SiteProvider initial={initial}><Page /></SiteProvider>
 }
