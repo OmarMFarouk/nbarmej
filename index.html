@@ -31,7 +31,7 @@
       try {
         var q = new URLSearchParams(location.search), d = document.documentElement.dataset
         d.theme = q.get('theme') || localStorage.theme || 'light'
-        d.palette = 'orange'
+        d.palette = q.get('palette') || localStorage.palette || 'orange'
       } catch (e) { document.documentElement.dataset.theme = 'light' }
     </script>
 

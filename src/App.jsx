@@ -483,6 +483,30 @@ function Footer() {
 }
 
 // وسائل التواصل ظاهرة دائمًا: شريط جانبي على الحاسب، وشريط سفلي على الجوال
+const PALETTES = [['orange', '#ff5a1f', 'برتقالي'], ['green', '#00843d', 'أخضر'], ['gold', '#d4a13a', 'ذهبي'], ['maroon', '#8c1c33', 'عنابي'], ['indigo', '#3b5bdb', 'نيلي'], ['teal', '#0b8f8a', 'فيروزي'], ['lime', '#a3d91a', 'ليموني'], ['coral', '#e8475f', 'مرجاني'], ['mono', '#111111', 'أحادي']]
+
+function PaletteFab() {
+  const [open, setOpen] = useState(false)
+  const [cur, setCur] = useState('orange') // نفس الـHTML المُولَّد مسبقًا، ثم نقرأ اللوحة الفعلية
+  useEffect(() => setCur(document.documentElement.dataset.palette || 'orange'), [])
+  const pick = (k) => {
+    document.documentElement.dataset.palette = k
+    try { localStorage.palette = k } catch {}
+    setCur(k)
+    setOpen(false)
+  }
+  return (
+    <div className="palette">
+      {open && <div className="palette-menu" role="menu" aria-label="ألوان الموقع">
+        {PALETTES.map(([k, c, t]) => (
+          <button key={k} role="menuitemradio" aria-checked={cur === k} aria-label={t} title={t} className={cur === k ? 'swatch on' : 'swatch'} style={{ background: c }} onClick={() => pick(k)} />
+        ))}
+      </div>}
+      <button className="palette-fab" aria-label="تغيير ألوان الموقع" aria-expanded={open} onClick={() => setOpen(!open)}>🎨</button>
+    </div>
+  )
+}
+
 function Dock({ home = '' }) {
   const { contact: CONTACT, wa } = useSite()
   return (
@@ -529,6 +553,7 @@ function Page() {
       </main>
       <Footer />
       <Dock />
+      <PaletteFab />
     </>
   )
 }
@@ -583,6 +608,7 @@ function ServicePage({ slug }) {
       </main>
       <Footer />
       <Dock home="/" />
+      <PaletteFab />
     </>
   )
 }

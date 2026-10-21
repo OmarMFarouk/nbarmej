@@ -314,6 +314,13 @@ address a:hover, .socials a:hover { color: var(--accent-text); }
 @keyframes nudge { 0%, 90%, 100% { transform: none; } 93% { transform: rotate(-12deg); } 96% { transform: rotate(12deg); } }
 
 /* ---------- responsive ---------- */
+.palette { position: fixed; z-index: 60; inset-inline-start: 20px; bottom: 20px; display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; }
+.palette-fab { width: 54px; height: 54px; border-radius: 50%; background: var(--bg-2); border: 2px solid var(--fg); box-shadow: -3px 3px 0 var(--shadow); font-size: 24px; cursor: pointer; transition: transform .15s; }
+.palette-fab:hover { transform: translate(2px, -2px); }
+.palette-menu { display: grid; grid-template-columns: repeat(3, 34px); gap: 8px; padding: 10px; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: -3px 3px 0 var(--shadow); }
+.swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+.swatch.on { border-color: var(--fg); box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px var(--fg); }
+
 @media (max-width: 960px) {
   .services, .testimonials { grid-template-columns: 1fr 1fr; }
   .process { grid-template-columns: 1fr 1fr; }
@@ -349,6 +356,8 @@ address a:hover, .socials a:hover { color: var(--accent-text); }
   .dock a span { display: inline; }
   .dock svg { width: 20px; height: 20px; }
   .dock .dock-wa { flex: 2; animation: none; }
+  .palette { inset-inline-start: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .palette-fab { width: 46px; height: 46px; font-size: 20px; }
   .preview-float { inset-inline: 12px; bottom: 76px; max-width: none; padding: 10px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
