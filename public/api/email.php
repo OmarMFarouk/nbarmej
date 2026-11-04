@@ -117,20 +117,12 @@ function email_new_request(array $r): array {
         . em_row('المدة المطلوبة', h(($r['timeline'] ?? '') ?: '—'))
         . em_row('تفاصيل إضافية', nl2br(h(($r['details'] ?? '') ?: '—')))
         . em_row('وقت الطلب', '<span dir="ltr">' . h($r['created_at'] ?? '') . '</span>');
-    $utm = trim(($r['utm_source'] ?? '') . ' / ' . ($r['utm_medium'] ?? '') . ' / ' . ($r['utm_campaign'] ?? ''), ' /');
-    $src = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;background:#faf8f3;border:1px solid ' . EM_LINE . ';border-radius:12px"><tr><td style="padding:14px 18px;font-size:13px;line-height:1.9;color:' . EM_MUTED . '">'
-        . '<strong style="color:' . EM_INK . '">مصدر الزيارة</strong><br>'
-        . 'المصدر: <span dir="ltr">' . h(($r['source'] ?? '') ?: 'direct') . '</span>'
-        . ($utm !== '' ? '<br>الحملة: <span dir="ltr">' . h($utm) . (($r['utm_term'] ?? '') ? ' | ' . h($r['utm_term']) : '') . '</span>' : '')
-        . (($r['gclid'] ?? '') ? '<br>GCLID: <span dir="ltr" style="word-break:break-all">' . h($r['gclid']) . '</span>' : '')
-        . (($r['landing_url'] ?? '') ? '<br>الصفحة: <span dir="ltr" style="word-break:break-all">' . h($r['landing_url']) . '</span>' : '')
-        . '</td></tr></table>';
     $wa = 'https://wa.me/' . ltrim($phone, '+') . '?text=' . rawurlencode('السلام عليكم ' . $r['name'] . '، معك فريق نبرمج بخصوص طلبك رقم ' . ($r['order_no'] ?? '') . '.');
     $body = em_heading('طلب جديد وصل من الموقع', 'عميل جديد يطلب عرض سعر — تواصل معه بأسرع وقت.')
         . '<p style="margin:0 0 18px">' . $badge . '</p>'
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' . $rows . '</table>'
         . '<div style="text-align:center;margin:28px 0 4px">' . em_button('تواصل مع العميل على واتساب', $wa, '#25d366', '#ffffff') . em_button('افتح الطلب في لوحة التحكم', SITE . '/admin/#/requests') . '</div>'
-        . $src;
+        ;
     return [
         'subject' => 'طلب جديد ' . ($r['order_no'] ?? '') . ' — ' . $r['name'],
         'html' => em_layout('طلب جديد ' . ($r['order_no'] ?? ''), $r['name'] . ' · ' . $phone . ' · ' . $r['service'], $body),
