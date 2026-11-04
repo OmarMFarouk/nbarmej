@@ -10,6 +10,8 @@ name: Deploy
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 0 * * *' # يوميًا: يعيد توليد الصفحات المرسومة مسبقًا (SEO) بآخر محتوى حُفظ من لوحة التحكم
   workflow_dispatch:
 
 concurrency: deploy
@@ -46,8 +48,8 @@ jobs:
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -p "${SSH_PORT:-65002}" "$SSH_HOST" >> ~/.ssh/known_hosts
 
-      # uploads/ (صور لوحة التحكم) و.htaccess تبقى كما هي على الخادم؛ data/ خارج public_html أصلًا
-      # assets/ تُستبدل بالكامل لحذف الملفات القديمة؛ باقي الملفات تُحدَّث دون حذف
+      # uploads/ (صور لوحة التحكم) تبقى كما هي؛ data/ و config.php خارج public_html أصلًا
+      # الترتيب: assets الجديدة أولًا، ثم الصفحات، ثم حذف assets القديمة — حتى لا يرى الزائر ملفات ناقصة أثناء النشر
       - name: Upload
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -57,5 +59,6 @@ jobs:
         run: |
           DEST="${DEPLOY_PATH:-domains/nbarmej.com/public_html}"
           SSH="ssh -i ~/.ssh/id_deploy -p ${SSH_PORT:-65002}"
-          rsync -rlz --exclude uploads/ --exclude .htaccess --exclude assets/ -e "$SSH" dist/ "$SSH_USER@$SSH_HOST:$DEST/"
+          rsync -rlz -e "$SSH" dist/assets/ "$SSH_USER@$SSH_HOST:$DEST/assets/"
+          rsync -rlz --exclude uploads/ --exclude assets/ -e "$SSH" dist/ "$SSH_USER@$SSH_HOST:$DEST/"
           rsync -rlz --delete -e "$SSH" dist/assets/ "$SSH_USER@$SSH_HOST:$DEST/assets/"

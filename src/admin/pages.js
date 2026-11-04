@@ -25,16 +25,9 @@ export const PAGES = {
       TA('النص التعريفي|Intro text', 'lead', { rows: 4, wide: true }),
       T('نص الزر الأول (واتساب)|Primary button (WhatsApp)', 'cta1'),
       T('نص الزر الثاني (نماذج الأعمال)|Second button (works)', 'cta2'),
+      T('رابط الزر الثاني (مثل #work أو #quote)|Second button link (e.g. #work or #quote)', 'cta2Href', { ltr: true, hint: 'فارغ = قسم الأعمال|Empty = works section' }),
       { type: 'tags', label: 'نقاط الثقة|Trust points', k: 'trust', wide: true },
-      T('رقم الشارة|Badge number', 'badgeNum'),
-      T('نص الشارة|Badge text', 'badgeText'),
-      { type: 'image', label: 'صورة الواجهة|Hero image', k: 'image', wide: true },
     ],
-  },
-  stats: {
-    title: 'الأرقام|Stats', icon: 'star', kind: 'list', key: 'stats', blank: { n: '', l: '' },
-    itemTitle: (x) => [x.n, x.l].filter(Boolean).join(' — '),
-    fields: [T('الرقم|Number', 'n'), T('الوصف|Label', 'l')],
   },
   stack: {
     title: 'التقنيات (الشريط المتحرك)|Tech stack (marquee)', icon: 'layers', kind: 'form', key: '',
@@ -49,11 +42,6 @@ export const PAGES = {
     title: 'نقاط المشكلة|Problem points', icon: 'help', kind: 'list', key: 'points', blank: { t: '' },
     itemTitle: (x) => x.t,
     fields: [TA('النقطة|Point', 't', { wide: true, rows: 2 })],
-  },
-  pricing: {
-    title: 'الأسعار|Pricing', icon: 'star', kind: 'list', key: 'pricing', blank: { name: '', price: '', text: '', cta: 'احسب تكلفة مشروعي' },
-    itemTitle: (x) => [x.name, x.price].filter(Boolean).join(' — '),
-    fields: [T('الاسم|Name', 'name', { wide: true }), T('السعر|Price', 'price', { hint: 'مثال: تبدأ من ٢٬٤٠٠ ريال|e.g. Starts from 2,400' }), T('نص الزر|Button text', 'cta'), TA('الوصف|Description', 'text', { wide: true })],
   },
   services: {
     title: 'الخدمات|Services', icon: 'layers', kind: 'list', key: 'services', blank: { img: '', title: '', text: '', tags: [], cta: '', slug: '', seoTitle: '', seoDesc: '', about: '', features: [] },
@@ -123,15 +111,17 @@ export const PAGES = {
       { type: 'heading', label: 'آلية العمل|How we work' },
       { type: 'show', label: 'إظهار القسم في الموقع|Show section on site', k: 'process.off' },
       T('الوسم|Tag', 'process.tag'), T('العنوان|Title', 'process.title'),
-      { type: 'heading', label: 'الأسعار|Pricing' },
-      { type: 'show', label: 'إظهار القسم في الموقع|Show section on site', k: 'pricing.off' },
-      T('الوسم|Tag', 'pricing.tag'), T('العنوان|Title', 'pricing.title'),
       { type: 'heading', label: 'أداة عرض السعر|Quote tool' },
       { type: 'show', label: 'إظهار القسم في الموقع|Show section on site', k: 'quote.off' },
       T('الوسم|Tag', 'quote.tag'), T('العنوان|Title', 'quote.title'), TA('النص|Text', 'quote.text', { wide: true }),
       { type: 'heading', label: 'لماذا نبرمج؟|Why us' },
       { type: 'show', label: 'إظهار القسم في الموقع|Show section on site', k: 'why.off' },
       T('الوسم|Tag', 'why.tag'), T('العنوان|Title', 'why.title'),
+      ...[0, 1, 2, 3].flatMap((i) => [
+        { type: 'heading', label: `الخطوة ${i + 1}|Step ${i + 1}` },
+        T('العنوان|Title', `why.items.${i}.title`),
+        TA('الوصف|Description', `why.items.${i}.description`, { wide: true }),
+      ]),
       { type: 'heading', label: 'الأسئلة الشائعة|FAQ' },
       { type: 'show', label: 'إظهار القسم في الموقع|Show section on site', k: 'faq.off' },
       T('الوسم|Tag', 'faq.tag'), T('العنوان|Title', 'faq.title'),
@@ -148,6 +138,7 @@ export const PAGES = {
       T('رقم الهاتف|Phone number', 'phone', { type: 'tel', ltr: true, ph: '+9665XXXXXXXX' }),
       T('البريد الإلكتروني|Email', 'email', { type: 'email', ltr: true }),
       TA('العنوان|Address', 'address', { wide: true, rows: 2 }),
+      T('رقم السجل التجاري|Commercial registration number', 'registration', { ltr: true }),
     ],
   },
   hours: {
@@ -166,15 +157,16 @@ export const PAGES = {
   },
 }
 
-// الشريط الجانبي: مجموعات متداخلة. id يطابق PAGES أو صفحات اللوحة الخاصة (dash, media, password)
+// الشريط الجانبي: مجموعات متداخلة. id يطابق PAGES أو صفحات اللوحة الخاصة (dash, requests, media, password)
 export const NAV = [
   { id: 'dash', label: 'لوحة البداية|Dashboard', icon: 'home' },
+  { id: 'requests', label: 'الطلبات|Requests', icon: 'users' },
   {
     key: 'site', label: 'الموقع|Website', icon: 'globe', children: [
       {
         key: 'home', label: 'الصفحة الرئيسية|Home page', icon: 'layout', children: [
           { id: 'hero' }, { id: 'start' }, { id: 'points' }, { id: 'services' }, { id: 'projects' }, { id: 'process' },
-          { id: 'pricing' }, { id: 'quote' }, { id: 'stats' }, { id: 'faq' }, { id: 'stack' }, { id: 'sections' },
+          { id: 'quote' }, { id: 'faq' }, { id: 'stack' }, { id: 'sections' },
         ],
       },
       { id: 'brand' },

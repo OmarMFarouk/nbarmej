@@ -187,3 +187,26 @@ html[dir='rtl'] .ad-switch input:checked + i::after { transform: translateX(-18p
 html[dir='ltr'] .ad-switch input:checked + i::after { transform: translateX(18px); }
 .ad-show { display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 12px; }
 .ad-item.off > header strong, .ad-item.off > header .ad-mini, .ad-item.off > header .ad-num { opacity: .45; text-decoration: line-through; }
+
+/* صفحة الطلبات */
+.rq-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.rq-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.rq-tabs button { border: 1px solid var(--line); background: var(--bg-2); color: var(--fg); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: inherit; }
+.rq-tabs button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.rq-tabs b { margin-inline-start: 4px; opacity: .8; }
+.rq-search { flex: 1; min-width: 200px; border: 1px solid var(--line); background: var(--bg-2); color: var(--fg); border-radius: 10px; padding: 8px 12px; font: inherit; }
+.rq-list { display: grid; gap: 10px; }
+.rq-item { padding: 12px 16px; }
+.rq-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; cursor: pointer; }
+.rq-head > .rq-name { flex: 1 1 140px; }
+.rq-head select { font: inherit; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+.rq-head select[data-s=new] { border-color: var(--accent); }
+.rq-head select[data-s=signed] { border-color: #1f9d55; }
+.rq-name { font-weight: 700; }
+.rq-warn { color: #e5484d; }
+.rq-detail { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
+.rq-detail dl { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 0; }
+.rq-detail dt { color: var(--muted); }
+.rq-detail dd { margin: 0; overflow-wrap: anywhere; }
+.rq-pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 16px; }
+@media (max-width: 800px) { .rq-detail dl { grid-template-columns: 1fr; } }

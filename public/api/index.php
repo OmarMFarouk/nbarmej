@@ -75,6 +75,10 @@ function throttle(bool $failed = false, bool $reset = false, string $k = 'login'
     }
 }
 
+require __DIR__ . '/mail.php';
+require __DIR__ . '/requests.php';
+if (defined('NBR_LIB')) return; // cron.php يحمّل الدوال فقط
+
 $a = $_GET['a'] ?? '';
 $post = $_SERVER['REQUEST_METHOD'] === 'POST';
 
@@ -121,6 +125,27 @@ switch ($a) {
         if (is_file($p)) copy($p, DATA . '/content.prev.json');
         jwrite('content.json', $c);
         out(['ok' => true]);
+
+    case 'request': // عام: إرسال طلب عرض سعر من النموذج
+        if (!$post) fail('method', 405);
+        if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 20000) fail('too_big', 413);
+        handle_request(input());
+
+    case 'requests': // الإدارة: قائمة الطلبات
+        auth(false);
+        list_requests();
+
+    case 'request_set':
+        auth();
+        update_request(input());
+
+    case 'request_retry':
+        auth();
+        retry_request(input());
+
+    case 'requests_csv':
+        auth(false);
+        export_requests();
 
     case 'media':
         auth(false);
@@ -171,9 +196,18 @@ switch ($a) {
             $u['reset'] = ['hash' => hash('sha256', $t), 'exp' => time() + 3600];
             jwrite('users.json', $u);
             $link = SITE . '/admin/#/reset?token=' . $t;
-            $sent = @mail($u['email'], '=?UTF-8?B?' . base64_encode('إعادة تعيين كلمة مرور لوحة التحكم') . '?=',
-                "لإعادة تعيين كلمة المرور افتح الرابط التالي (صالح لمدة ساعة):\n$link\n\nإن لم تطلب ذلك فتجاهل هذه الرسالة.",
-                "From: " . ADMIN_EMAIL . "\r\nContent-Type: text/plain; charset=UTF-8");
+            [$sent] = smtp_send($u['email'], 'إعادة تعيين كلمة مرور لوحة التحكم',
+                "لإعادة تعيين كلمة المرور افتح الرابط التالي (صالح لمدة ساعة):
+$link
+
+إن لم تطلب ذلك فتجاهل هذه الرسالة.");
+            if (!$sent) $sent = @mail($u['email'], '=?UTF-8?B?' . base64_encode('إعادة تعيين كلمة مرور لوحة التحكم') . '?=',
+                "لإعادة تعيين كلمة المرور افتح الرابط التالي (صالح لمدة ساعة):
+$link
+
+إن لم تطلب ذلك فتجاهل هذه الرسالة.",
+                "From: " . ADMIN_EMAIL . "
+Content-Type: text/plain; charset=UTF-8");
             if (!$sent || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)) {
                 file_put_contents(DATA . '/reset.log', date('c') . " $link\n", FILE_APPEND); // للاختبار المحلي وعند تعطل البريد
             }

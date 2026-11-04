@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { DEFAULTS, merge } from '../content'
+import { DEFAULTS, merge, upgradeSaved } from '../content'
 import { api, setCsrf } from './api'
 import { PAGES, NAV, titleOf, iconOf } from './pages'
+import RequestsPage from './Requests'
 import { Ico, LangCtx, pick, errText, Fields, ListEditor, setIn, useUpload } from './ui'
 
 const hashRoute = () => {
@@ -257,9 +258,6 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
   const [open, setOpen] = useState(() => { try { return JSON.parse(localStorage.adNav) } catch { return { site: true, home: true } } })
 
   useEffect(() => {
-    api('content').then((j) => { const c = merge(DEFAULTS, j); setContent(c); setDraft(c) })
-  }, [])
-  useEffect(() => {
     const on = () => { setRoute(hashRoute().path); setMenu(false); scrollTo(0, 0) }
     addEventListener('hashchange', on)
     return () => removeEventListener('hashchange', on)
@@ -278,7 +276,23 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
     return () => removeEventListener('beforeunload', warn)
   }, [dirty])
 
-  const flash = (msg, err) => { setToast({ msg, err }); setTimeout(() => setToast(null), 3500) }
+  const flash = useCallback((msg, err) => { setToast({ msg, err }); setTimeout(() => setToast(null), 3500) }, [])
+  useEffect(() => {
+    let alive = true
+    // محتوى قديم محفوظ: نحدّثه إلى الصياغة الحالية ونحفظه تلقائيًا
+    api('content').then(async (raw) => {
+      const saved = upgradeSaved(raw), c = merge(DEFAULTS, saved)
+      if (!alive) return
+      setContent(c); setDraft(c)
+      if (JSON.stringify(saved) === JSON.stringify(raw)) return
+      setSaving(true)
+      try {
+        await api('save', c)
+        if (alive) { setContent(c); setDraft(c); setSaving(false); flash(t('تم تحديث المحتوى القديم وحفظه تلقائيًا ✓|Legacy content updated and saved automatically ✓')) }
+      } catch (e) { if (alive) flash(errText(e, lang), true) }
+    }).catch((e) => { if (alive) flash(errText(e, lang), true) })
+    return () => { alive = false }
+  }, [flash, lang, t])
   const save = async () => {
     setSaving(true)
     try { await api('save', draft); setContent(draft); flash(t('تم الحفظ وظهر على الموقع ✓|Saved and live on the site ✓')) }
@@ -293,7 +307,7 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
   }
   const toggle = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }))
   const page = PAGES[route]
-  const title = page ? page.title : { dash: 'لوحة البداية|Dashboard', media: 'مكتبة الصور|Media library', password: 'تغيير كلمة المرور|Change password' }[route] || 'لوحة البداية|Dashboard'
+  const title = page ? page.title : { dash: 'لوحة البداية|Dashboard', requests: 'الطلبات|Requests', media: 'مكتبة الصور|Media library', password: 'تغيير كلمة المرور|Change password' }[route] || 'لوحة البداية|Dashboard'
 
   return (
     <div className={`ad ${menu ? 'menu-open' : ''}`}>
@@ -323,6 +337,7 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
         <div className="ad-content">
           {!draft ? <p className="muted">…</p>
             : page ? <EditPage t={t} page={page} draft={draft} setDraft={setDraft} />
+            : route === 'requests' ? <RequestsPage t={t} lang={lang} />
             : route === 'media' ? <MediaPage t={t} lang={lang} />
             : route === 'password' ? <PasswordPage t={t} lang={lang} onChanged={() => setUser({ ...user, default: false })} />
             : <Dashboard t={t} draft={draft} user={user} />}

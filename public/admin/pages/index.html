@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl" translate="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>الباقات والخصوصية — لوحة التحكم</title>
+<style>
+  body{font:15px/1.6 "IBM Plex Sans Arabic",Tahoma,sans-serif;margin:0;background:#f3f0e8;color:#1a1a17}
+  header{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 20px;background:#0e0e0c;color:#fff;position:sticky;top:0;z-index:5}
+  header a{color:#fff}header h1{font-size:17px;margin:0;flex:1}
+  nav{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px}
+  nav button,.btn{border:1px solid #bbb;background:#fff;border-radius:8px;padding:7px 14px;cursor:pointer;font:inherit}
+  nav button.on,.btn.pri{background:#e8590c;color:#fff;border-color:#e8590c}
+  main{max-width:900px;margin:0 auto;padding:0 20px 80px}
+  fieldset{border:1px solid #d6d2c6;border-radius:10px;margin:10px 0;padding:8px 14px;background:#fff}
+  legend{font-weight:700;padding:0 6px;color:#c2410c;direction:ltr}
+  label{display:block;margin:8px 0}label span{display:block;font-size:12px;color:#777;direction:ltr;text-align:right}
+  input,textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid #ccc;border-radius:6px;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:6px;align-items:flex-start;margin:6px 0}.row>*:first-child{flex:1}
+  .mini{border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;padding:2px 8px}
+  .bar{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid #ccc;padding:10px 20px;display:flex;gap:10px;align-items:center}
+  #msg{flex:1}.err{color:#b91c1c}.ok{color:#15803d}
+</style>
+</head>
+<body>
+<header><h1>الباقات والخصوصية والنصوص الثابتة</h1><a href="/admin/">← لوحة التحكم</a></header>
+<nav id="tabs"></nav>
+<main id="ed"></main>
+<div class="bar"><span id="msg"></span><button class="btn" id="reset">استرجاع الافتراضي لهذا القسم</button><button class="btn pri" id="save">حفظ</button></div>
+<script>
+// ملاحظة: يعدّل المفاتيح pkCopy وpackages وprivacy داخل content.json، ويقرؤها الموقع عند التحميل.
+const TABS = { packages: 'الباقات (التفاصيل)', pkCopy: 'قسم الباقات في الرئيسية', privacy: 'سياسة الخصوصية' }
+const $ = (s) => document.querySelector(s)
+let csrf = '', saved = {}, defs = {}, cur = 'packages', data = {}
+const merge = (d, s) => s === undefined ? structuredClone(d)
+  : (d && s && typeof d === 'object' && typeof s === 'object' && !Array.isArray(d) && !Array.isArray(s))
+    ? Object.fromEntries([...new Set([...Object.keys(d), ...Object.keys(s)])].map((k) => [k, merge(d[k], s[k])])) : s
+const blank = (v) => Array.isArray(v) ? [] : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blank(x)])) : typeof v === 'string' ? '' : v
+const msg = (t, c = '') => { $('#msg').textContent = t; $('#msg').className = c }
+
+function node(v, set, label) {
+  if (Array.isArray(v)) {
+    const f = document.createElement('fieldset'), l = document.createElement('legend')
+    l.textContent = label + ' [' + v.length + ']'; f.append(l)
+    const draw = () => {
+      f.querySelectorAll(':scope > .row, :scope > .add').forEach((e) => e.remove())
+      v.forEach((x, i) => {
+        const r = document.createElement('div'); r.className = 'row'
+        const body = node(x, (nv) => { v[i] = nv }, '#' + (i + 1)); r.append(body)
+        const bt = document.createElement('div')
+        for (const [t, fn] of [['↑', () => i && v.splice(i - 1, 0, v.splice(i, 1)[0])], ['↓', () => i < v.length - 1 && v.splice(i + 1, 0, v.splice(i, 1)[0])], ['✕', () => v.splice(i, 1)]]) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'mini'; b.textContent = t
+          b.onclick = () => { fn(); set(v); draw() }; bt.append(b)
+        }
+        r.append(bt); f.append(r)
+      })
+      const a = document.createElement('button'); a.type = 'button'; a.className = 'mini add'; a.textContent = '＋ إضافة'
+      a.onclick = () => { v.push(v.length ? blank(v[0]) : ''); set(v); draw() }; f.append(a)
+    }
+    draw(); return f
+  }
+  if (v && typeof v === 'object') {
+    const f = document.createElement('fieldset'), l = document.createElement('legend')
+    l.textContent = label; f.append(l)
+    for (const k of Object.keys(v)) f.append(node(v[k], (nv) => { v[k] = nv }, k))
+    return f
+  }
+  const lb = document.createElement('label'), sp = document.createElement('span'); sp.textContent = label; lb.append(sp)
+  const long = typeof v === 'string' && (v.length > 60 || v.includes('\n'))
+  const inp = document.createElement(long ? 'textarea' : 'input'); inp.value = v ?? ''
+  if (long) inp.rows = Math.min(8, Math.ceil(v.length / 60))
+  inp.oninput = () => set(typeof v === 'number' ? Number(inp.value) : inp.value); lb.append(inp); return lb
+}
+
+function show() {
+  document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.k === cur))
+  $('#ed').replaceChildren(node(data[cur], (nv) => { data[cur] = nv }, TABS[cur]))
+}
+async function api(a, body) {
+  const r = await fetch('/api/?a=' + a, body ? { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF': csrf }, body: JSON.stringify(body) } : {})
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.status); return j
+}
+async function init() {
+  try { csrf = (await api('me')).csrf } catch { location.href = '/admin/'; return }
+  ;[saved, defs] = await Promise.all([api('content'), fetch('defaults.json').then((r) => r.json())])
+  for (const k of Object.keys(TABS)) {
+    data[k] = merge(defs[k], saved[k])
+    const b = document.createElement('button'); b.dataset.k = k; b.textContent = TABS[k]
+    b.onclick = () => { cur = k; show() }; $('#tabs').append(b)
+  }
+  show()
+}
+$('#save').onclick = async () => {
+  try {
+    const full = await api('content'); for (const k of Object.keys(TABS)) full[k] = data[k]
+    await api('save', full); msg('تم الحفظ ✓', 'ok')
+  } catch (e) { msg('تعذّر الحفظ: ' + e.message, 'err') }
+}
+$('#reset').onclick = () => { if (confirm('استرجاع الافتراضي لهذا القسم؟ (يُحفظ عند الضغط على حفظ)')) { data[cur] = structuredClone(defs[cur]); show() } }
+init()
+</script>
+</body>
+</html>
