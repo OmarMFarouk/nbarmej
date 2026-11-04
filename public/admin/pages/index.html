@@ -30,10 +30,10 @@
 <main id="ed"></main>
 <div class="bar"><span id="msg"></span><button class="btn" id="reset">استرجاع الافتراضي لهذا القسم</button><button class="btn pri" id="save">حفظ</button></div>
 <script>
-// ملاحظة: يعدّل المفاتيح pkCopy وpackages وprivacy داخل content.json، ويقرؤها الموقع عند التحميل.
-const TABS = { packages: 'الباقات (التفاصيل)', pkCopy: 'قسم الباقات في الرئيسية', privacy: 'سياسة الخصوصية' }
+// ملاحظة: يعدّل المفاتيح plans وpkCopy وpackages وprivacy داخل content.json، ويقرؤها الموقع عند التحميل.
+const TABS = { plans: 'بطاقات الباقات (الرئيسية)', packages: 'صفحات الباقات (التفاصيل)', pkCopy: 'نصوص قسم الباقات', privacy: 'سياسة الخصوصية' }
 const $ = (s) => document.querySelector(s)
-let csrf = '', saved = {}, defs = {}, cur = 'packages', data = {}
+let csrf = '', saved = {}, defs = {}, cur = 'plans', data = {}
 const merge = (d, s) => s === undefined ? structuredClone(d)
   : (d && s && typeof d === 'object' && typeof s === 'object' && !Array.isArray(d) && !Array.isArray(s))
     ? Object.fromEntries([...new Set([...Object.keys(d), ...Object.keys(s)])].map((k) => [k, merge(d[k], s[k])])) : s

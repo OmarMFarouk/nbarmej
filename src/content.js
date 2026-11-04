@@ -1,5 +1,5 @@
 import { PLAN_DETAILS } from './packages/details'
-import { PACKAGES_COPY } from './packages/plans'
+import { PACKAGES_COPY, PLANS } from './packages/plans'
 import { PRIVACY, PRIVACY_UPDATED } from './privacy/data'
 
 export const LEGACY_DEFAULTS = [
@@ -515,107 +515,102 @@ export const DEFAULTS = {
   },
   // صفحات الباقات والخصوصية: تُعدَّل من /admin/pages/
   pkCopy: PACKAGES_COPY,
+  plans: PLANS,
   packages: PLAN_DETAILS,
   privacy: { updated: PRIVACY_UPDATED, ...PRIVACY },
 }
 const isObj = (e) => e && typeof e == 'object' && !Array.isArray(e)
-function getPath(e, t) {
-  let n = e
-  for (let e of t.split('.')) {
-    if ((!isObj(n) && !Array.isArray(n)) || !Object.prototype.hasOwnProperty.call(n, e))
-      return {
-        exists: false,
-      }
-    n = n[e]
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k)
+
+// يقرأ مسارًا متداخلًا مثل "hero.title1"
+function getPath(obj, path) {
+  let cur = obj
+  for (const key of path.split('.')) {
+    if ((!isObj(cur) && !Array.isArray(cur)) || !hasOwn(cur, key)) return { exists: false }
+    cur = cur[key]
   }
-  return {
-    exists: true,
-    value: n,
-  }
+  return { exists: true, value: cur }
 }
-function deepEqual(e, t) {
-  if (Array.isArray(e) || Array.isArray(t))
-    return Array.isArray(e) && Array.isArray(t) && e.length === t.length && e.every((e, n) => deepEqual(e, t[n]))
-  if (isObj(e) || isObj(t)) {
-    if (!isObj(e) || !isObj(t)) return false
-    let n = Object.keys(e)
-    return (
-      n.length === Object.keys(t).length &&
-      n.every((n) => Object.prototype.hasOwnProperty.call(t, n) && deepEqual(e[n], t[n]))
-    )
+
+function deepEqual(a, b) {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => deepEqual(x, b[i]))
   }
-  return Object.is(e, t)
-}
-function setPath(e, t, n, r = false) {
-  let [i, ...a] = t,
-    o = Array.isArray(e)
-      ? e.slice()
-      : {
-          ...e,
-        }
-  return a.length
-    ? ((o[i] = setPath(e[i], a, n, r)), o)
-    : (r ? (Array.isArray(o) ? o.splice(Number(i), 1) : delete o[i]) : (o[i] = n), o)
-}
-export function upgradeSaved(e) {
-  if (!isObj(e)) return e
-  let t = e
-  for (let [e, n] of LEGACY_DEFAULTS) {
-    let r = getPath(t, e)
-    if (!r.exists || !deepEqual(r.value, n)) continue
-    let i = getPath(DEFAULTS, e)
-    t = setPath(t, e.split('.'), i.value, !i.exists)
+  if (isObj(a) || isObj(b)) {
+    if (!isObj(a) || !isObj(b)) return false
+    const keys = Object.keys(a)
+    return keys.length === Object.keys(b).length && keys.every((k) => hasOwn(b, k) && deepEqual(a[k], b[k]))
   }
-  let n = (e, n, r) => {
-    let i = t
-    for (let t of e.slice(0, -1)) {
-      if (!isObj(i?.[t])) return
-      i = i[t]
+  return Object.is(a, b)
+}
+
+// يعيد نسخة من obj بعد وضع value في المسار (أو حذف المفتاح عند remove)
+function setPath(obj, keys, value, remove = false) {
+  const [head, ...rest] = keys
+  const copy = Array.isArray(obj) ? obj.slice() : { ...obj }
+  if (rest.length) {
+    copy[head] = setPath(obj[head], rest, value, remove)
+  } else if (remove) {
+    if (Array.isArray(copy)) copy.splice(Number(head), 1)
+    else delete copy[head]
+  } else {
+    copy[head] = value
+  }
+  return copy
+}
+
+// محتوى قديم محفوظ من لوحة التحكم: القيم التي بقيت كما كانت افتراضيًا تُرقّى إلى الافتراضي الجديد
+export function upgradeSaved(saved) {
+  if (!isObj(saved)) return saved
+  let out = saved
+  for (const [path, old] of LEGACY_DEFAULTS) {
+    const cur = getPath(out, path)
+    if (!cur.exists || !deepEqual(cur.value, old)) continue
+    const next = getPath(DEFAULTS, path)
+    out = setPath(out, path.split('.'), next.value, !next.exists)
+  }
+  // استبدال نص محدد قديم بالافتراضي الجديد (فقط إن لم يغيّره المستخدم)
+  const replaceText = (path, oldText, newText) => {
+    let node = out
+    for (const k of path.slice(0, -1)) {
+      if (!isObj(node?.[k])) return
+      node = node[k]
     }
-    let a = e[e.length - 1]
-    if (i[a] !== n) return
-    let o = {
-        ...t,
-      },
-      s = o,
-      c = t
-    for (let t of e.slice(0, -1))
-      ((s[t] = {
-        ...c[t],
-      }),
-        (s = s[t]),
-        (c = c[t]))
-    ;((s[a] = r), (t = o))
+    const last = path[path.length - 1]
+    if (node[last] !== oldText) return
+    const copy = { ...out }
+    let to = copy
+    let from = out
+    for (const k of path.slice(0, -1)) {
+      to[k] = { ...from[k] }
+      to = to[k]
+      from = from[k]
+    }
+    to[last] = newText
+    out = copy
   }
-  return (
-    n(['brand', 'ribbon'], 'نستقبل مشاريع — عرض سعر واضح خلال ساعة', DEFAULTS.brand.ribbon),
-    n(['hero', 'title1'], 'صـــمـم مــوقــع شــركــتك', DEFAULTS.hero.title1),
-    n(['hero', 'accent'], 'يجلب لك طلبات حقيقية', DEFAULTS.hero.accent),
-    n(
-      ['sections', 'final', 'text'],
-      'أرسل لنا نوع مشروعك (موقع شركة، مكتب، متجر)، ونرجع لك بتصور أولي وسعر واضح. بدون تعقيد',
-      DEFAULTS.sections.final.text,
-    ),
-    isObj(t.brand) &&
-      typeof t.brand.tagline == 'string' &&
-      t.brand.tagline.startsWith('شركة سعودية') &&
-      (t = {
-        ...t,
-        brand: {
-          ...t.brand,
-          tagline: `وكالة سعودية${t.brand.tagline.slice(11)}`,
-        },
-      }),
-    t
+  replaceText(['brand', 'ribbon'], 'نستقبل مشاريع — عرض سعر واضح خلال ساعة', DEFAULTS.brand.ribbon)
+  replaceText(['hero', 'title1'], 'صـــمـم مــوقــع شــركــتك', DEFAULTS.hero.title1)
+  replaceText(['hero', 'accent'], 'يجلب لك طلبات حقيقية', DEFAULTS.hero.accent)
+  replaceText(
+    ['sections', 'final', 'text'],
+    'أرسل لنا نوع مشروعك (موقع شركة، مكتب، متجر)، ونرجع لك بتصور أولي وسعر واضح. بدون تعقيد',
+    DEFAULTS.sections.final.text,
   )
-}
-export function merge(e, t) {
-  if ((e === DEFAULTS && (t = upgradeSaved(t)), !isObj(e) || !isObj(t))) return t === undefined ? e : t
-  let n = {
-    ...e,
+  const tag = out.brand?.tagline
+  if (isObj(out.brand) && typeof tag === 'string' && tag.startsWith('شركة سعودية')) {
+    out = { ...out, brand: { ...out.brand, tagline: 'وكالة سعودية' + tag.slice('شركة سعودية'.length) } }
   }
-  for (let r of Object.keys(t)) n[r] = r in e ? merge(e[r], t[r]) : t[r]
-  return n
+  return out
+}
+
+// يدمج المحفوظ فوق الافتراضي: الكائنات تُدمج بعمق، والمصفوفات والقيم تُستبدل
+export function merge(def, saved) {
+  if (def === DEFAULTS) saved = upgradeSaved(saved)
+  if (!isObj(def) || !isObj(saved)) return saved === undefined ? def : saved
+  const out = { ...def }
+  for (const k of Object.keys(saved)) out[k] = k in def ? merge(def[k], saved[k]) : saved[k]
+  return out
 }
 export const DAYS_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 export const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -626,14 +621,16 @@ const time12 = (e) => {
     r = t % 12 || 12
   return arDigits(n ? `${r}:${String(n).padStart(2, '0')}` : r) + (t < 12 ? 'ص' : 'م')
 }
-const runs = (e) => {
-  let t = [...new Set(e)].filter((e) => e >= 0 && e <= 6).sort((e, t) => e - t),
-    n = []
-  for (let e of t) {
-    let t = n[n.length - 1]
-    t && e === t[1] + 1 ? (t[1] = e) : n.push([e, e])
+// يجمع أيام الأسبوع المتتالية في مجالات [من، إلى]
+const runs = (days) => {
+  const sorted = [...new Set(days)].filter((d) => d >= 0 && d <= 6).sort((a, b) => a - b)
+  const out = []
+  for (const d of sorted) {
+    const last = out[out.length - 1]
+    if (last && d === last[1] + 1) last[1] = d
+    else out.push([d, d])
   }
-  return n
+  return out
 }
 export function formatHours({ days: e = [], from: t, to: n } = {}) {
   let r = runs(e)
@@ -652,20 +649,18 @@ export function schemaHours({ days: e = [], from: t, to: n } = {}) {
 }
 export const safeUrl = (e) => (/^(https?:|mailto:|tel:)/i.test(e || '') ? e : '')
 const PAGE_KEYS = ['slug', 'seoTitle', 'seoDesc', 'about', 'features']
-export function withPages(e) {
-  return e.map((e) => {
-    let t = DEFAULTS.services.find((t) => t.title === e.title) || {},
-      n = {
-        ...e,
-      }
-    for (let e of PAGE_KEYS) (!n[e] || (Array.isArray(n[e]) && !n[e].length)) && (n[e] = t[e])
-    return (
-      (n.slug = String(n.slug || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9-]+/g, '-')
-        .replace(/^-+|-+$/g, '')),
-      n
-    )
+export function withPages(services) {
+  return services.map((svc) => {
+    const base = DEFAULTS.services.find((d) => d.title === svc.title) || {}
+    const out = { ...svc }
+    for (const k of PAGE_KEYS) {
+      if (!out[k] || (Array.isArray(out[k]) && !out[k].length)) out[k] = base[k]
+    }
+    out.slug = String(out.slug || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    return out
   })
 }
 export const servicePath = (e) => (e.slug ? `/services/${e.slug}/` : '')

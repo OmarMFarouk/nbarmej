@@ -76,15 +76,13 @@ export function HomePage() {
     )
   )
 }
-export function ServicePage({ slug: e }) {
-  let { services: t, brand: n, wa: r } = useSite(),
-    i = t.find((t) => t.slug === e)
-  if (
-    (useEffect(() => {
-      i && (document.title = `${i.seoTitle || i.title} | ${n.name}`)
-    }, [i, n.name]),
-    !i)
-  )
+export function ServicePage({ slug }) {
+  const { services, brand, wa } = useSite()
+  const svc = services.find((x) => x.slug === slug)
+  useEffect(() => {
+    if (svc) document.title = `${svc.seoTitle || svc.title} | ${brand.name}`
+  }, [svc, brand.name])
+  if (!svc)
     return (
       <>
         <Header home="/" />
@@ -97,7 +95,7 @@ export function ServicePage({ slug: e }) {
         <Footer home="/" />
       </>
     )
-  let o = t.filter((e) => e !== i && e.slug)
+  const others = services.filter((x) => x !== svc && x.slug)
   return (
     <>
       <a className="skip" href="#main">
@@ -110,21 +108,21 @@ export function ServicePage({ slug: e }) {
           {' / '}
           <a href="/#services">خدماتنا</a>
           {' / '}
-          <span aria-current="page">{i.title}</span>
+          <span aria-current="page">{svc.title}</span>
         </nav>
         <div className="svc-hero">
           <div>
-            <h1>{i.seoTitle || i.title}</h1>
-            <p className="svc-lead">{i.text}</p>
+            <h1>{svc.seoTitle || svc.title}</h1>
+            <p className="svc-lead">{svc.text}</p>
             <ul className="chips">
-              {(i.tags || []).map((e, t) => (
+              {(svc.tags || []).map((e, t) => (
                 <li key={t}>{e}</li>
               ))}
             </ul>
             <div className="svc-ctas">
               <a
                 className="btn btn-primary"
-                href={r(`السلام عليكم، أرغب بعرض سعر لخدمة: ${i.title}`)}
+                href={wa(`السلام عليكم، أرغب بعرض سعر لخدمة: ${svc.title}`)}
                 target="_blank"
                 rel="noopener"
               >
@@ -137,37 +135,34 @@ export function ServicePage({ slug: e }) {
             </div>
           </div>
           <div className="service-img">
-            <Img src={i.img} alt={`${i.title} — ${n.name}`} label="N/" eager={!0} />
+            <Img src={svc.img} alt={`${svc.title} — ${brand.name}`} label="N/" eager />
           </div>
         </div>
-        {i.about && (
+        {svc.about && (
           <section className="svc-about">
-            {i.about
-              .split(
-                `
-`,
-              )
+            {svc.about
+              .split('\n')
               .filter(Boolean)
               .map((e, t) => (
                 <p key={t}>{e}</p>
               ))}
           </section>
         )}
-        {i.features?.length > 0 && (
+        {svc.features?.length > 0 && (
           <section className="svc-features">
             <h2>ماذا تحصل عليه</h2>
             <ul>
-              {i.features.map((e, t) => (
+              {svc.features.map((e, t) => (
                 <li key={t}>{e}</li>
               ))}
             </ul>
           </section>
         )}
-        {o.length > 0 && (
+        {others.length > 0 && (
           <section className="svc-others">
             <h2>خدمات أخرى</h2>
             <ul>
-              {o.map((e) => (
+              {others.map((e) => (
                 <li key={e.slug}>
                   <a className="link" href={servicePath(e)}>
                     {e.title} {Icon.arrow}

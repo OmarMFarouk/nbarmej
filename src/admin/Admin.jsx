@@ -158,7 +158,7 @@ function EditPage({ t, page, draft, setDraft }) {
   )
 }
 
-function MediaPage({ t, lang }) {
+function MediaPage({ t }) {
   const [list, setList] = useState(null)
   const load = useCallback(() => api('media').then(setList).catch(() => setList([])), [])
   useEffect(() => { load() }, [load])
@@ -265,6 +265,7 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
   // افتح المجموعات الأب للصفحة الحالية
   useEffect(() => {
     const a = ancestors(NAV, route) || []
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- يفتح مجموعات القائمة الأب عند تغيّر الصفحة
     if (a.some((k) => !open[k])) setOpen((o) => ({ ...o, ...Object.fromEntries(a.map((k) => [k, true])) }))
   }, [route]) // eslint-disable-line
   useEffect(() => { try { localStorage.adNav = JSON.stringify(open) } catch {} }, [open])
@@ -338,7 +339,7 @@ function Shell({ t, lang, setLang, user, setUser, onOut }) {
           {!draft ? <p className="muted">…</p>
             : page ? <EditPage t={t} page={page} draft={draft} setDraft={setDraft} />
             : route === 'requests' ? <RequestsPage t={t} lang={lang} />
-            : route === 'media' ? <MediaPage t={t} lang={lang} />
+            : route === 'media' ? <MediaPage t={t} />
             : route === 'password' ? <PasswordPage t={t} lang={lang} onChanged={() => setUser({ ...user, default: false })} />
             : <Dashboard t={t} draft={draft} user={user} />}
         </div>

@@ -19,25 +19,23 @@ export function Logo({ href: e = '#top' }) {
   )
 }
 export function ThemeToggle() {
-  let [e, t] = useState('light')
+  const [theme, setTheme] = useState('light') // نفس الـHTML المُولَّد مسبقًا، ثم نقرأ الثيم الفعلي
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- الثيم الفعلي يُقرأ بعد الرسم الأول ليتطابق مع HTML المُولَّد
+  useEffect(() => setTheme(document.documentElement.dataset.theme), [])
+  const flip = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    document.documentElement.dataset.theme = next
+    try {
+      localStorage.theme = next
+    } catch {
+      /* التخزين المحلي غير متاح */
+    }
+    setTheme(next)
+  }
   return (
-    useEffect(() => t(document.documentElement.dataset.theme), []),
-    (
-      <button
-        className="icon-btn"
-        onClick={() => {
-          let n = e === 'dark' ? 'light' : 'dark'
-          document.documentElement.dataset.theme = n
-          try {
-            localStorage.theme = n
-          } catch {}
-          t(n)
-        }}
-        aria-label={e === 'dark' ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'}
-      >
-        {e === 'dark' ? Icon.sun : Icon.moon}
-      </button>
-    )
+    <button className="icon-btn" onClick={flip} aria-label={theme === 'dark' ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'}>
+      {theme === 'dark' ? Icon.sun : Icon.moon}
+    </button>
   )
 }
 export function Header({ home: e = '' }) {

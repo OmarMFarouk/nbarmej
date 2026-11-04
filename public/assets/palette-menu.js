@@ -2,7 +2,7 @@
 (function () {
   var P = [['orange', 'برتقالي', '#ff5a1f'], ['coral', 'مرجاني', '#e8475f'], ['gold', 'ذهبي', '#d4a13a'], ['green', 'أخضر', '#00843d'], ['teal', 'تيل', '#0b8f8a'], ['indigo', 'نيلي', '#3b5bdb'], ['maroon', 'عنابي', '#8c1c33'], ['lime', 'ليموني', '#a3d91a'], ['mono', 'أحادي', '#111111']]
   var root = document.documentElement
-  try { var s = localStorage.palette; if (P.some(function (p) { return p[0] === s })) root.dataset.palette = s } catch (e) {}
+  try { var s = localStorage.palette; if (P.some(function (p) { return p[0] === s })) root.dataset.palette = s } catch { /* التخزين غير متاح */ }
   var css = document.createElement('style')
   css.textContent = '.pal-menu{position:fixed;z-index:80;background:var(--bg-2,#fff);color:var(--fg,#111);border:1px solid var(--line,#ddd);border-radius:16px;padding:12px;box-shadow:0 12px 34px rgba(0,0,0,.3);width:196px;direction:rtl}' +
     '.pal-menu[hidden]{display:none}.pal-t{font-size:13px;font-weight:700;margin:0 0 10px}.pal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}' +
@@ -15,7 +15,7 @@
   P.forEach(function (p) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'pal-sw'; b.dataset.k = p[0]
     b.style.background = p[2]; b.title = p[1]; b.setAttribute('aria-label', p[1])
-    b.onclick = function () { root.dataset.palette = p[0]; try { localStorage.palette = p[0] } catch (e) {} mark() }; grid.appendChild(b)
+    b.onclick = function () { root.dataset.palette = p[0]; try { localStorage.palette = p[0] } catch { /* التخزين غير متاح */ } mark() }; grid.appendChild(b)
   })
   function mark() { var k = root.dataset.palette || 'orange'; grid.querySelectorAll('.pal-sw').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === k)) }) }
   function place() {

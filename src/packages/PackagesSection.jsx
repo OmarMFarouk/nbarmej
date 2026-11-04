@@ -1,5 +1,4 @@
 import { Link } from '../router'
-import { PLANS } from './plans'
 import { useSite } from '../SiteContext'
 
 export function PlanCard({ plan: e }) {
@@ -35,7 +34,7 @@ export function PlanCard({ plan: e }) {
   )
 }
 export function PackagesSection() {
-  const { pkCopy: PACKAGES_COPY } = useSite()
+  const { pkCopy: PACKAGES_COPY, plans } = useSite()
   let { wa: e } = useSite(),
     t = e('السلام عليكم، أرغب بطلب دراسة لمشروعي والحصول على عرض فني ومالي. نوع المشروع: …')
   return (
@@ -49,7 +48,7 @@ export function PackagesSection() {
           <p>{PACKAGES_COPY.intro}</p>
         </header>
         <div className="pk-packages">
-          {PLANS.map((e) => (
+          {plans.map((e) => (
             <PlanCard plan={e} key={e.id} />
           ))}
         </div>

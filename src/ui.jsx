@@ -105,31 +105,29 @@ export const Icon = {
   ),
 }
 export const REVEAL = '.sec-head, .card, .work-item, .points li, .quote, .final, .faq-item, .why-section, .footer-in'
+// ظهور العناصر تدريجيًا عند التمرير (يُهمَل مع تفضيل تقليل الحركة)
 export function useReveal() {
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return
-    let e = new IntersectionObserver(
-      (t) =>
-        t.forEach((t) => {
-          t.isIntersecting &&
-            (e.unobserve(t.target),
-            t.target.classList.add('in'),
-            setTimeout(() => t.target.classList.remove('rv', 'in'), 1400))
-        }),
-      {
-        threshold: 0.12,
-        rootMargin: '0px 0px -6% 0px',
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          io.unobserve(e.target)
+          e.target.classList.add('in')
+          setTimeout(() => e.target.classList.remove('rv', 'in'), 1400)
+        }
       },
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
     )
-    return (
-      [...document.querySelectorAll(REVEAL)]
-        .filter((e) => e.getBoundingClientRect().top > innerHeight * 0.9)
-        .forEach((t) => {
-          let n = [...t.parentElement.children].filter((e) => e.matches(REVEAL))
-          ;(t.style.setProperty('--d', Math.min(n.indexOf(t), 5) * 0.09 + 's'), t.classList.add('rv'), e.observe(t))
-        }),
-      () => e.disconnect()
-    )
+    const below = [...document.querySelectorAll(REVEAL)].filter((el) => el.getBoundingClientRect().top > innerHeight * 0.9)
+    for (const el of below) {
+      const sibs = [...el.parentElement.children].filter((c) => c.matches(REVEAL))
+      el.style.setProperty('--d', Math.min(sibs.indexOf(el), 5) * 0.09 + 's')
+      el.classList.add('rv')
+      io.observe(el)
+    }
+    return () => io.disconnect()
   }, [])
 }
 export const asset = (e) => '/'.replace(/\/$/, '') + e

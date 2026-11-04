@@ -1,20 +1,22 @@
 import { createContext, useContext } from 'react'
 
+// دالة التنقل الداخلي (تُوفَّر من App). بدونها يعمل الرابط كرابط عادي
 export const NavContext = createContext(null)
-export function Link({ href: e, onClick: t, target: n, ...r }) {
-  let i = useContext(NavContext)
+
+export function Link({ href, onClick, target, ...rest }) {
+  const navigate = useContext(NavContext)
   return (
     <a
-      href={e}
-      target={n}
-      {...r}
-      onClick={(r) => {
-        if (
-          (t?.(r), r.defaultPrevented || r.button !== 0 || r.metaKey || r.ctrlKey || r.shiftKey || r.altKey || n || !i)
-        )
-          return
-        let a = new URL(e, window.location.href)
-        a.origin === window.location.origin && (r.preventDefault(), i(`${a.pathname}${a.search}${a.hash}`))
+      href={href}
+      target={target}
+      {...rest}
+      onClick={(e) => {
+        onClick?.(e)
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || target || !navigate) return
+        const url = new URL(href, window.location.href)
+        if (url.origin !== window.location.origin) return
+        e.preventDefault()
+        navigate(`${url.pathname}${url.search}${url.hash}`)
       }}
     />
   )

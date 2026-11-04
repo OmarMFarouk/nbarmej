@@ -110,7 +110,7 @@ export function useUpload(onDone) {
 }
 
 export function MediaPicker({ onPick, onClose }) {
-  const { t, lang } = useT()
+  const { t } = useT()
   const [list, setList] = useState(null)
   const load = () => api('media').then(setList).catch(() => setList([]))
   useEffect(() => { load() }, [])

@@ -37,7 +37,8 @@ export function QuoteForm() {
   const [order, setOrder] = useState('')
   const [failMsg, setFailMsg] = useState('')
   const key = useRef(uuid()) // مفتاح الإرسال: يمنع تكرار الطلب عند الضغط المتكرر أو إعادة المحاولة
-  const shownAt = useRef(Date.now())
+  const shownAt = useRef(0) // وقت ظهور النموذج: الإرسال خلال أقل من ثانيتين يُعتبر آليًا
+  useEffect(() => { shownAt.current = Date.now() }, [])
   const sendRef = useRef(null) // زر الإرسال هو المرساة: الشريط العائم يظهر حين يغيب عن الشاشة
   const [passed, setPassed] = useState(false)
 
@@ -79,6 +80,7 @@ export function QuoteForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...f, key: key.current, elapsed: (Date.now() - shownAt.current) / 1000, attr: getAttribution() }),
+        signal: AbortSignal.timeout(20000), // لا يبقى الزر «جارٍ الإرسال…» للأبد عند انقطاع الشبكة
       })
       const j = await r.json().catch(() => ({}))
       if (r.status === 422 && j.fields) {

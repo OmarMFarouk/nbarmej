@@ -80,7 +80,7 @@ for (const k of packages) {
 }
 
 mkdirSync(resolve(dist, 'admin/pages'), { recursive: true })
-writeFileSync(resolve(dist, 'admin/pages/defaults.json'), JSON.stringify({ pkCopy: defaults.pkCopy, packages: defaults.packages, privacy: defaults.privacy }))
+writeFileSync(resolve(dist, 'admin/pages/defaults.json'), JSON.stringify({ pkCopy: defaults.pkCopy, plans: defaults.plans, packages: defaults.packages, privacy: defaults.privacy }))
 
 const urls = [['/', '1.0'], ...services.map((s) => [`/services/${s.slug}/`, '0.8']), ['/privacy', '0.5'], ...packages.map((k) => [`/packages/${k.id}`, '0.8'])]
 writeFileSync(resolve(dist, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>

@@ -183,67 +183,67 @@ export function Services() {
     </section>
   )
 }
-export function Lightbox({ items: e, i: t, setI: n, wa: r }) {
-  let i = e[t],
-    a = e.length,
-    o = useRef(null),
-    c = (e) => n((t + e + a) % a)
+export function Lightbox({ items, i, setI, wa }) {
+  const w = items[i]
+  const n = items.length
+  const closeRef = useRef(null)
+  const go = (d) => setI((i + d + n) % n)
+  useEffect(() => {
+    const prev = document.activeElement
+    const onKey = (e) => {
+      if (e.key === 'Escape') setI(-1)
+      else if (e.key === 'ArrowLeft') go(1)
+      else if (e.key === 'ArrowRight') go(-1)
+    }
+    addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    closeRef.current?.focus()
+    return () => {
+      removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+      prev?.focus?.()
+    }
+  })
   return (
-    useEffect(() => {
-      let e = document.activeElement,
-        t = (e) => {
-          e.key === 'Escape' ? n(-1) : e.key === 'ArrowLeft' ? c(1) : e.key === 'ArrowRight' && c(-1)
-        }
-      return (
-        addEventListener('keydown', t),
-        (document.body.style.overflow = 'hidden'),
-        o.current?.focus(),
-        () => {
-          ;(removeEventListener('keydown', t), (document.body.style.overflow = ''), e?.focus?.())
-        }
-      )
-    }),
-    (
-      <div className="lb" role="dialog" aria-modal="true" aria-label={i.title} onClick={() => n(-1)}>
-        <div className="lb-card" onClick={(e) => e.stopPropagation()}>
-          <button ref={o} type="button" className="lb-close icon-btn" onClick={() => n(-1)} aria-label="إغلاق">
-            {Icon.close}
-          </button>
-          <div className="lb-stage">
-            {a > 1 && (
-              <button type="button" className="lb-nav lb-prev icon-btn" onClick={() => c(-1)} aria-label="السابق">
-                {Icon.arrow}
-              </button>
-            )}
-            <img src={asset(i.img)} alt={i.title} key={i.img} />
-            {a > 1 && (
-              <button type="button" className="lb-nav lb-next icon-btn" onClick={() => c(1)} aria-label="التالي">
-                {Icon.arrow}
-              </button>
-            )}
+    <div className="lb" role="dialog" aria-modal="true" aria-label={w.title} onClick={() => setI(-1)}>
+      <div className="lb-card" onClick={(e) => e.stopPropagation()}>
+        <button ref={closeRef} type="button" className="lb-close icon-btn" onClick={() => setI(-1)} aria-label="إغلاق">
+          {Icon.close}
+        </button>
+        <div className="lb-stage">
+          {n > 1 && (
+            <button type="button" className="lb-nav lb-prev icon-btn" onClick={() => go(-1)} aria-label="السابق">
+              {Icon.arrow}
+            </button>
+          )}
+          <img src={asset(w.img)} alt={w.title} key={w.img} />
+          {n > 1 && (
+            <button type="button" className="lb-nav lb-next icon-btn" onClick={() => go(1)} aria-label="التالي">
+              {Icon.arrow}
+            </button>
+          )}
+        </div>
+        <div className="lb-info">
+          <div>
+            <h3>{w.title}</h3>
+            <p className="muted">{w.type}</p>
           </div>
-          <div className="lb-info">
-            <div>
-              <h3>{i.title}</h3>
-              <p className="muted">{i.type}</p>
-            </div>
-            <span className="lb-count">
-              {arDigits(t + 1)}
-              {' / '}
-              {arDigits(a)}
-            </span>
-            <a
-              className="btn btn-primary btn-sm"
-              href={r(`السلام عليكم، ${i.cta || 'أبغى نموذج مشابه'} (مثل مشروع ${i.title}).`)}
-              target="_blank"
-              rel="noopener"
-            >
-              {Icon.wa} {i.cta || 'أبغى نموذج مشابه'}
-            </a>
-          </div>
+          <span className="lb-count">
+            {arDigits(i + 1)}
+            {' / '}
+            {arDigits(n)}
+          </span>
+          <a
+            className="btn btn-primary btn-sm"
+            href={wa(`السلام عليكم، ${w.cta || 'أبغى نموذج مشابه'} (مثل مشروع ${w.title}).`)}
+            target="_blank"
+            rel="noopener"
+          >
+            {Icon.wa} {w.cta || 'أبغى نموذج مشابه'}
+          </a>
         </div>
       </div>
-    )
+    </div>
   )
 }
 export function Work() {
