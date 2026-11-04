@@ -191,12 +191,6 @@ function request_email_body(array $r): string {
         '',
         'واتساب العميل: https://wa.me/' . ltrim((string)$r['phone'], '+'),
         '',
-        '— المصدر —',
-        'UTM: ' . trim(($r['utm_source'] ?? '') . ' / ' . ($r['utm_medium'] ?? '') . ' / ' . ($r['utm_campaign'] ?? ''), ' /') . (($r['utm_term'] ?? '') ? ' | ' . $r['utm_term'] : ''),
-        'GCLID: ' . (($r['gclid'] ?? '') ?: '—'),
-        'الصفحة: ' . (($r['landing_url'] ?? '') ?: '—'),
-        'المرجع: ' . (($r['referrer'] ?? '') ?: '—'),
-        '',
         'إدارة الطلبات: ' . SITE . '/admin/#/requests',
     ];
     return implode("\n", $lines);
