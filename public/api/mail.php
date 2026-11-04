@@ -4,7 +4,7 @@ declare(strict_types=1);
 if (!defined('DATA')) { http_response_code(404); exit; } // لا يُفتح مباشرة
 
 /** @return array{0:bool,1:string} [نجح؟, رسالة الخطأ] */
-function smtp_send(string $to, string $subject, string $body, ?array $smtp = null, string $replyTo = ''): array {
+function smtp_send(string $to, string $subject, string $body, ?array $smtp = null, string $replyTo = '', string $html = ''): array {
     $c = $smtp ?? (cfg()['smtp'] ?? []);
     if (empty($c['host']) || empty($c['user']) || empty($c['pass'])) return [false, 'smtp_not_configured'];
     $port = (int)($c['port'] ?? 465);
@@ -55,11 +55,33 @@ function smtp_send(string $to, string $subject, string $body, ?array $smtp = nul
             'Subject: ' . $enc($subject),
             'Message-ID: <' . bin2hex(random_bytes(12)) . "@$host>",
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding: base64',
         ];
         if ($replyTo !== '') $headers[] = "Reply-To: <$replyTo>";
-        $msg = implode("\r\n", $headers) . "\r\n\r\n" . chunk_split(base64_encode($body), 76, "\r\n");
+        $b64 = fn(string $t) => chunk_split(base64_encode($t), 76, "
+");
+        if ($html !== '') { // نص عادي + HTML (العميل يعرض الأنسب)
+            $bd = 'nbr_' . bin2hex(random_bytes(8));
+            $headers[] = "Content-Type: multipart/alternative; boundary=\"$bd\"";
+            $payload = "--$bd
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+" . $b64($body)
+                . "--$bd
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+" . $b64($html) . "--$bd--
+";
+        } else {
+            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            $headers[] = 'Content-Transfer-Encoding: base64';
+            $payload = $b64($body);
+        }
+        $msg = implode("
+", $headers) . "
+
+" . $payload;
         fwrite($fp, $msg . "\r\n.\r\n");
         [$code, $text] = $read();
         if ($code !== 250) return [false, "send: $code $text"];

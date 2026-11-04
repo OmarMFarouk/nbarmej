@@ -76,6 +76,7 @@ function throttle(bool $failed = false, bool $reset = false, string $k = 'login'
 }
 
 require __DIR__ . '/mail.php';
+require __DIR__ . '/email.php';
 require __DIR__ . '/requests.php';
 if (defined('NBR_LIB')) return; // cron.php يحمّل الدوال فقط
 
@@ -196,17 +197,19 @@ switch ($a) {
             $u['reset'] = ['hash' => hash('sha256', $t), 'exp' => time() + 3600];
             jwrite('users.json', $u);
             $link = SITE . '/admin/#/reset?token=' . $t;
-            [$sent] = smtp_send($u['email'], 'إعادة تعيين كلمة مرور لوحة التحكم',
+            $em = email_password_reset($link);
+            [$sent] = smtp_send($u['email'], $em['subject'],
                 "لإعادة تعيين كلمة المرور افتح الرابط التالي (صالح لمدة ساعة):
 $link
 
-إن لم تطلب ذلك فتجاهل هذه الرسالة.");
+إن لم تطلب ذلك فتجاهل هذه الرسالة.", null, '', $em['html']);
             if (!$sent) $sent = @mail($u['email'], '=?UTF-8?B?' . base64_encode('إعادة تعيين كلمة مرور لوحة التحكم') . '?=',
                 "لإعادة تعيين كلمة المرور افتح الرابط التالي (صالح لمدة ساعة):
 $link
 
 إن لم تطلب ذلك فتجاهل هذه الرسالة.",
-                "From: " . ADMIN_EMAIL . "
+                "From: " . ADMIN_EMAIL . "
+
 Content-Type: text/plain; charset=UTF-8");
             if (!$sent || in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)) {
                 file_put_contents(DATA . '/reset.log', date('c') . " $link\n", FILE_APPEND); // للاختبار المحلي وعند تعطل البريد

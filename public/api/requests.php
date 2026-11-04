@@ -145,7 +145,8 @@ function handle_request(array $b): never {
         $order = 'NB-' . date('ymd') . '-F' . substr(bin2hex(random_bytes(3)), 0, 4);
         @file_put_contents(DATA . '/requests-fallback.jsonl', json_encode(['order_no' => $order, 'at' => date('c'), 'row' => $row, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
         $row['order_no'] = $order; $row['created_at'] = date('Y-m-d H:i:s');
-        [$ok] = smtp_send(notify_to(), "طلب جديد $order (قاعدة البيانات غير متاحة)", request_email_body($row));
+        $em = email_new_request($row);
+        [$ok] = smtp_send(notify_to(), $em['subject'] . ' (قاعدة البيانات غير متاحة)', request_email_body($row), null, '', $em['html']);
         if (!$ok) fail('server', 500);
         out(['ok' => true, 'order_no' => $order]);
     }
@@ -221,7 +222,8 @@ function notify_request(int $id): void {
     $errs = [];
     $email = (int)$r['notified_email']; $wa = (int)$r['notified_wa'];
     if (!$email) {
-        [$ok, $e] = smtp_send(notify_to(), 'طلب جديد ' . $r['order_no'] . ' — ' . $r['name'], request_email_body($r));
+        $em = email_new_request($r);
+        [$ok, $e] = smtp_send(notify_to(), $em['subject'], request_email_body($r), null, '', $em['html']);
         if ($ok) $email = 1; else $errs[] = "email: $e";
     }
     if (wa_enabled() && !$wa) {
