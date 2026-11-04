@@ -3,6 +3,33 @@
 declare(strict_types=1);
 if (!defined('DATA')) { http_response_code(404); exit; } // لا يُفتح مباشرة
 
+/** يبني الرسالة كاملة (رؤوس + نص + HTML اختياري) بنهايات أسطر CRLF كما يتطلب SMTP */
+function mime_message(string $from, string $fromName, string $to, string $subject, string $text, string $html, string $replyTo, string $host): string {
+    $nl = "\r\n";
+    $enc = fn(string $s) => '=?UTF-8?B?' . base64_encode($s) . '?=';
+    $b64 = fn(string $t) => chunk_split(base64_encode($t), 76, $nl);
+    $headers = [
+        'Date: ' . date('r'),
+        'From: ' . $enc($fromName) . " <$from>",
+        "To: <$to>",
+        'Subject: ' . $enc($subject),
+        'Message-ID: <' . bin2hex(random_bytes(12)) . "@$host>",
+        'MIME-Version: 1.0',
+    ];
+    if ($replyTo !== '') $headers[] = "Reply-To: <$replyTo>";
+    if ($html === '') {
+        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+        $headers[] = 'Content-Transfer-Encoding: base64';
+        $payload = $b64($text);
+    } else { // نص عادي + HTML: العميل يعرض الأنسب (الأخير هو المفضّل)
+        $bd = 'nbr_' . bin2hex(random_bytes(8));
+        $headers[] = 'Content-Type: multipart/alternative; boundary="' . $bd . '"';
+        $part = fn(string $type, string $content) => "--$bd{$nl}Content-Type: $type; charset=UTF-8{$nl}Content-Transfer-Encoding: base64{$nl}{$nl}" . $b64($content);
+        $payload = $part('text/plain', $text) . $part('text/html', $html) . "--$bd--{$nl}";
+    }
+    return implode($nl, $headers) . $nl . $nl . $payload;
+}
+
 /** @return array{0:bool,1:string} [نجح؟, رسالة الخطأ] */
 function smtp_send(string $to, string $subject, string $body, ?array $smtp = null, string $replyTo = '', string $html = ''): array {
     $c = $smtp ?? (cfg()['smtp'] ?? []);
@@ -47,41 +74,7 @@ function smtp_send(string $to, string $subject, string $body, ?array $smtp = nul
         if ($e = $cmd("RCPT TO:<$to>", [250, 251])) return [false, "rcpt: $e"];
         if ($e = $cmd('DATA', [354])) return [false, "data: $e"];
 
-        $enc = fn(string $s) => '=?UTF-8?B?' . base64_encode($s) . '?=';
-        $headers = [
-            'Date: ' . date('r'),
-            'From: ' . $enc($fromName) . " <$from>",
-            "To: <$to>",
-            'Subject: ' . $enc($subject),
-            'Message-ID: <' . bin2hex(random_bytes(12)) . "@$host>",
-            'MIME-Version: 1.0',
-        ];
-        if ($replyTo !== '') $headers[] = "Reply-To: <$replyTo>";
-        $b64 = fn(string $t) => chunk_split(base64_encode($t), 76, "
-");
-        if ($html !== '') { // نص عادي + HTML (العميل يعرض الأنسب)
-            $bd = 'nbr_' . bin2hex(random_bytes(8));
-            $headers[] = "Content-Type: multipart/alternative; boundary=\"$bd\"";
-            $payload = "--$bd
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-" . $b64($body)
-                . "--$bd
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-" . $b64($html) . "--$bd--
-";
-        } else {
-            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-            $headers[] = 'Content-Transfer-Encoding: base64';
-            $payload = $b64($body);
-        }
-        $msg = implode("
-", $headers) . "
-
-" . $payload;
+        $msg = mime_message($from, $fromName, $to, $subject, $body, $html, $replyTo, $host);
         fwrite($fp, $msg . "\r\n.\r\n");
         [$code, $text] = $read();
         if ($code !== 250) return [false, "send: $code $text"];
