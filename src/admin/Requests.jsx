@@ -16,6 +16,7 @@ function Detail({ r, t, onSave, onRetry }) {
   return (
     <div className="rq-detail">
       <dl>
+        <dt>{t('البريد|Email')}</dt><dd dir="ltr">{r.email ? <a href={`mailto:${r.email}`}>{r.email}</a> : '—'}</dd>
         <dt>{t('الخدمات|Services')}</dt><dd>{r.service}</dd>
         <dt>{t('الميزانية|Budget')}</dt><dd>{r.budget || '—'}</dd>
         <dt>{t('المدة|Timeline')}</dt><dd>{r.timeline || '—'}</dd>
@@ -25,7 +26,8 @@ function Detail({ r, t, onSave, onRetry }) {
         <dt>{t('الصفحة|Page')}</dt><dd dir="ltr">{r.landing_url || '—'}</dd>
         <dt>{t('الإشعار|Notification')}</dt>
         <dd>
-          {Number(r.notified_email) ? '✓ ' : '✗ '}{t('بريد|Email')}
+          {Number(r.notified_email) ? '✓ ' : '✗ '}{t('بريد الفريق|Team email')}
+          {r.email && <>{' · '}{Number(r.notified_customer) ? '✓ ' : '✗ '}{t('تأكيد العميل|Customer confirmation')}</>}
           {' · '}
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRetry(r)}>{t('إعادة الإرسال|Resend')}</button>
           {r.notify_error && <small className="ad-err" dir="ltr"> {r.notify_error}</small>}

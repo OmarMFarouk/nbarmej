@@ -52,7 +52,7 @@ function em_hours(array $h): string {
 /** زر «مضمّن» يعمل في Outlook أيضًا */
 function em_button(string $label, string $href, string $bg = EM_ORANGE, string $fg = EM_INK): string {
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="btn-wrap" style="display:inline-table;margin:4px"><tr><td align="center" bgcolor="' . $bg . '" style="border-radius:12px;background:' . $bg . '">'
-        . '<a href="' . h($href) . '" target="_blank" style="display:inline-block;padding:14px 26px;font:700 15px/1.2 \'Segoe UI\',Tahoma,Arial,sans-serif;color:' . $fg . ';text-decoration:none;border-radius:12px">' . h($label) . '</a></td></tr></table>';
+        . '<a href="' . h($href) . '" target="_blank" style="display:inline-block;padding:14px 26px;font:700 15px/1.2 \'Thmanyah Sans\',\'Segoe UI\',Tahoma,Arial,sans-serif;color:' . $fg . ';text-decoration:none;border-radius:12px">' . h($label) . '</a></td></tr></table>';
 }
 
 function em_row(string $label, string $valueHtml): string {
@@ -61,7 +61,7 @@ function em_row(string $label, string $valueHtml): string {
 }
 
 /** الهيكل العام: شريط علوي بالشعار، بطاقة المحتوى، تذييل بمعلومات الشركة */
-function em_layout(string $title, string $preheader, string $bodyHtml): string {
+function em_layout(string $title, string $preheader, string $bodyHtml, string $note = ''): string {
     $b = brand_info();
     $logo = SITE . '/images/logo/logo-orange.png';
     $contact = [];
@@ -74,11 +74,11 @@ function em_layout(string $title, string $preheader, string $bodyHtml): string {
     if ($b['registration']) $lines[] = 'السجل التجاري: <span dir="ltr">' . h($b['registration']) . '</span>';
     return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
         . '<meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>' . h($title) . '</title>'
-        . '<style>@media only screen and (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}.stack{display:block!important;width:100%!important}.lbl{padding-bottom:0!important;border-bottom:0!important}.btn-wrap{display:block!important;width:100%!important;margin:8px 0!important}.btn-wrap a{display:block!important}}</style></head>'
+        . '<style>@font-face{font-family:\'Thmanyah Sans\';font-weight:400;src:url(' . SITE . '/font/thmanyahsans/woff2/thmanyahsans-Regular.woff2) format(\'woff2\')}@font-face{font-family:\'Thmanyah Sans\';font-weight:700;src:url(' . SITE . '/font/thmanyahsans/woff2/thmanyahsans-Bold.woff2) format(\'woff2\')}@font-face{font-family:\'Thmanyah Sans\';font-weight:900;src:url(' . SITE . '/font/thmanyahsans/woff2/thmanyahsans-Black.woff2) format(\'woff2\')}@media only screen and (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}.stack{display:block!important;width:100%!important}.lbl{padding-bottom:0!important;border-bottom:0!important}.btn-wrap{display:block!important;width:100%!important;margin:8px 0!important}.btn-wrap a{display:block!important}}</style></head>'
         . '<body style="margin:0;padding:0;background:' . EM_CREAM . ';-webkit-text-size-adjust:100%">'
         . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">' . h($preheader) . str_repeat('&nbsp;&zwnj;', 30) . '</div>'
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="' . EM_CREAM . '" style="background:' . EM_CREAM . '"><tr><td align="center" style="padding:24px 12px">'
-        . '<table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;font-family:\'Segoe UI\',Tahoma,Arial,sans-serif">'
+        . '<table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;font-family:\'Thmanyah Sans\',\'Segoe UI\',Tahoma,Arial,sans-serif">'
         // الشريط العلوي
         . '<tr><td height="6" bgcolor="' . EM_ORANGE . '" style="background:' . EM_ORANGE . ';height:6px;line-height:6px;font-size:0;border-radius:16px 16px 0 0">&nbsp;</td></tr>'
         . '<tr><td align="center" bgcolor="' . EM_DARK . '" style="background:' . EM_DARK . ';padding:26px 24px"><a href="' . h(SITE) . '" target="_blank"><img src="' . h($logo) . '" width="190" alt="' . h($b['name']) . '" style="display:block;border:0;outline:none;width:190px;max-width:100%;height:auto"></a></td></tr>'
@@ -91,12 +91,12 @@ function em_layout(string $title, string $preheader, string $bodyHtml): string {
         . '<br>' . implode('', array_map(fn($c) => '<span style="display:inline-block;margin:0 10px">' . $c . '</span>', $contact))
         . ($lines ? '<br>' . implode('<br>', $lines) : '')
         . '</td></tr>'
-        . '<tr><td align="center" style="padding:14px 8px;color:#9b988f;font-size:12px;line-height:1.7">هذه رسالة آلية من نظام ' . h($b['name']) . ' — لا حاجة للرد عليها.</td></tr>'
+        . '<tr><td align="center" style="padding:14px 8px;color:#9b988f;font-size:12px;line-height:1.7">' . h($note !== '' ? $note : 'هذه رسالة آلية من نظام ' . $b['name'] . ' — لا حاجة للرد عليها.') . '</td></tr>'
         . '</table></td></tr></table></body></html>';
 }
 
 function em_heading(string $text, string $sub = ''): string {
-    return '<h1 style="margin:0 0 6px;font:800 24px/1.5 \'Segoe UI\',Tahoma,Arial,sans-serif;color:' . EM_INK . '">' . h($text) . '</h1>'
+    return '<h1 style="margin:0 0 6px;font:800 24px/1.5 \'Thmanyah Sans\',\'Segoe UI\',Tahoma,Arial,sans-serif;color:' . EM_INK . '">' . h($text) . '</h1>'
         . ($sub !== '' ? '<p style="margin:0 0 20px;color:' . EM_MUTED . ';font-size:15px;line-height:1.8">' . h($sub) . '</p>' : '');
 }
 
@@ -112,6 +112,7 @@ function email_new_request(array $r): array {
         . ' <span style="display:inline-block;padding:5px 14px;background:#e7f6ec;color:#1f7a45;border-radius:999px;font-size:13px;font-weight:800">' . h($st[$r['status'] ?? 'new'] ?? 'جديد') . '</span>';
     $rows = em_row('الاسم', h($r['name']))
         . em_row('الجوال', '<a href="tel:' . h($phone) . '" style="color:' . EM_INK . ';text-decoration:none" dir="ltr">' . h($phone) . '</a>')
+        . (!empty($r['email']) ? em_row('البريد', '<a href="mailto:' . h($r['email']) . '" style="color:' . EM_INK . ';text-decoration:none" dir="ltr">' . h($r['email']) . '</a>') : '')
         . em_row('الخدمات', $chips)
         . em_row('الميزانية', h(($r['budget'] ?? '') ?: '—'))
         . em_row('المدة المطلوبة', h(($r['timeline'] ?? '') ?: '—'))
@@ -149,4 +150,43 @@ function email_test(): array {
         . '<p style="margin:0 0 22px;font-size:16px;line-height:1.9">إن وصلتك هذه الرسالة بشكل سليم فإشعارات الطلبات وإعادة تعيين كلمة المرور ستصلك بنفس الهوية.</p>'
         . '<div style="text-align:center">' . em_button('افتح لوحة التحكم', SITE . '/admin/') . '</div>';
     return ['subject' => 'اختبار البريد — نبرمج', 'html' => em_layout('اختبار البريد', 'رسالة تجريبية من نظام نبرمج.', $body)];
+}
+
+/** تأكيد للعميل بعد إرسال طلبه (يُرسل فقط إن كتب بريده) */
+function email_customer_confirmation(array $r): array {
+    $b = brand_info();
+    $first = (string)(preg_split('/\s+/u', trim((string)$r['name']))[0] ?? '');
+    $badge = '<span style="display:inline-block;padding:5px 14px;background:#fff1e9;color:#ac4c1b;border-radius:999px;font-size:13px;font-weight:800" dir="ltr">' . h($r['order_no'] ?? '') . '</span>';
+    $chips = '';
+    foreach (preg_split('/\s*،\s*/u', (string)$r['service']) ?: [] as $sv) {
+        if ($sv !== '') $chips .= '<span style="display:inline-block;margin:2px 0 2px 6px;padding:4px 12px;background:' . EM_CREAM . ';border:1px solid ' . EM_LINE . ';border-radius:999px;font-size:14px;font-weight:700">' . h($sv) . '</span>';
+    }
+    $rows = em_row('الخدمات', $chips)
+        . em_row('الميزانية', h(($r['budget'] ?? '') ?: '—'))
+        . em_row('المدة المطلوبة', h(($r['timeline'] ?? '') ?: '—'))
+        . em_row('جوالك', '<span dir="ltr">' . h($r['phone']) . '</span>')
+        . (($r['details'] ?? '') !== '' ? em_row('تفاصيل', nl2br(h($r['details']))) : '');
+    $step = fn(string $n, string $t) => '<tr><td width="38" valign="top" style="padding:7px 0"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="26" height="26" bgcolor="' . EM_ORANGE . '" style="background:' . EM_ORANGE . ';border-radius:13px;color:' . EM_INK . ';font-weight:900;font-size:13px;line-height:26px">' . $n . '</td></tr></table></td><td valign="top" style="padding:7px 0;font-size:15px;line-height:1.8">' . h($t) . '</td></tr>';
+    $steps = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px">'
+        . $step('١', 'نراجع تفاصيل طلبك ونحدد أنسب حل لك.')
+        . $step('٢', 'نتواصل معك على جوالك أو واتساب في أقرب وقت خلال أوقات العمل.')
+        . $step('٣', 'نرسل لك عرضًا واضحًا بالسعر والمدة قبل أي التزام.')
+        . '</table>';
+    $waNum = preg_replace('/\D/', '', (string)((jread('content.json', []) ?: [])['contact']['whatsapp'] ?? $b['phone']));
+    $btns = ($waNum ? em_button('تواصل معنا على واتساب', 'https://wa.me/' . $waNum . '?text=' . rawurlencode('السلام عليكم، بخصوص طلبي رقم ' . ($r['order_no'] ?? '')), '#25d366', '#ffffff') : '')
+        . ($b['phone'] ? em_button('اتصل بنا', 'tel:' . $b['phone']) : '');
+    $body = em_heading('وصلنا طلبك' . ($first !== '' ? " يا $first" : '') . ' ✓', 'شكرًا لثقتك بنا — بنراجع تفاصيل طلبك ونتواصل معك بالخطوة الجاية.')
+        . '<p style="margin:0 0 18px">' . $badge . '</p>'
+        . '<p style="margin:0 0 6px;font-weight:800;font-size:16px">ملخص طلبك</p>'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' . $rows . '</table>'
+        . '<p style="margin:26px 0 0;font-weight:800;font-size:16px">وش بعد؟</p>' . $steps
+        . '<div style="text-align:center;margin:26px 0 4px">' . $btns . '</div>';
+    $text = 'وصلنا طلبك' . ($first !== '' ? " يا $first" : '') . "\nرقم طلبك: " . ($r['order_no'] ?? '') . "\n\nالخدمات: " . $r['service']
+        . "\nالميزانية: " . (($r['budget'] ?? '') ?: '—') . "\nالمدة: " . (($r['timeline'] ?? '') ?: '—')
+        . "\n\nبنراجع تفاصيل طلبك ونتواصل معك في أقرب وقت خلال أوقات العمل.\n" . $b['name'] . ($b['phone'] ? ' — ' . $b['phone'] : '') . "\n" . SITE;
+    return [
+        'subject' => 'وصلنا طلبك ✓ — رقم ' . ($r['order_no'] ?? ''),
+        'text' => $text,
+        'html' => em_layout('وصلنا طلبك', 'رقم طلبك ' . ($r['order_no'] ?? '') . ' — بنراجعه ونتواصل معك قريبًا.', $body, 'وصلتك هذه الرسالة لأنك أرسلت طلبًا عبر موقع ' . $b['name'] . '.'),
+    ];
 }

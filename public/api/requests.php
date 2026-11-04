@@ -65,6 +65,10 @@ CREATE TABLE IF NOT EXISTS requests (
 SQL);
         @file_put_contents(DATA . '/.schema_v1', date('c'));
     }
+    if (!is_file(DATA . '/.schema_v2')) { // بريد العميل (اختياري) + حالة إرسال التأكيد له
+        $pdo->exec("ALTER TABLE requests ADD COLUMN IF NOT EXISTS email VARCHAR(190) NOT NULL DEFAULT '' AFTER phone, ADD COLUMN IF NOT EXISTS notified_customer TINYINT(1) NOT NULL DEFAULT 0 AFTER notified_wa");
+        @file_put_contents(DATA . '/.schema_v2', date('c'));
+    }
     return $pdo;
 }
 
@@ -103,16 +107,18 @@ function handle_request(array $b): never {
     $phone = normalize_phone((string)($b['phone'] ?? ''));
     $services = array_values(array_filter(array_map(fn($x) => clip($x, 80), is_array($b['service'] ?? null) ? array_slice($b['service'], 0, 12) : [])));
     $key = clip($b['key'] ?? '', 36);
+    $email = strtolower(clip($b['email'] ?? '', 190));
     $errors = [];
     if (mb_strlen($name) < 2) $errors['name'] = 'required';
     if (!$phone) $errors['phone'] = 'bad_phone';
     if (!$services) $errors['service'] = 'required';
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = 'bad_email';
     if (!preg_match('/^[0-9a-f-]{16,36}$/i', $key)) $errors['key'] = 'bad_key';
     if ($errors) out(['error' => 'invalid', 'fields' => $errors], 422);
 
     $a = is_array($b['attr'] ?? null) ? $b['attr'] : [];
     $row = [
-        'name' => $name, 'phone' => $phone, 'service' => implode('، ', $services),
+        'name' => $name, 'phone' => $phone, 'email' => $email, 'service' => implode('، ', $services),
         'budget' => clip($b['budget'] ?? '', 120), 'timeline' => clip($b['timeline'] ?? '', 120), 'details' => clip($b['details'] ?? '', 1500),
         'source' => clip($a['source'] ?? '', 255), 'utm_source' => clip($a['utm_source'] ?? '', 255), 'utm_medium' => clip($a['utm_medium'] ?? '', 255),
         'utm_campaign' => clip($a['utm_campaign'] ?? '', 255), 'utm_term' => clip($a['utm_term'] ?? '', 255), 'utm_content' => clip($a['utm_content'] ?? '', 255),
@@ -220,21 +226,27 @@ function notify_request(int $id): void {
     $r = $s->fetch();
     if (!$r) return;
     $errs = [];
-    $email = (int)$r['notified_email']; $wa = (int)$r['notified_wa'];
+    $email = (int)$r['notified_email']; $wa = (int)$r['notified_wa']; $cust = (int)$r['notified_customer'];
+    $hasCust = filter_var($r['email'] ?? '', FILTER_VALIDATE_EMAIL) !== false;
     if (!$email) {
         $em = email_new_request($r);
-        [$ok, $e] = smtp_send(notify_to(), $em['subject'], request_email_body($r), null, '', $em['html']);
+        [$ok, $e] = smtp_send(notify_to(), $em['subject'], request_email_body($r), null, $hasCust ? (string)$r['email'] : '', $em['html']);
         if ($ok) $email = 1; else $errs[] = "email: $e";
+    }
+    if ($hasCust && !$cust) { // تأكيد للعميل على بريده
+        $ce = email_customer_confirmation($r);
+        [$ok, $e] = smtp_send((string)$r['email'], $ce['subject'], $ce['text'], null, notify_to(), $ce['html']);
+        if ($ok) $cust = 1; else $errs[] = "customer: $e";
     }
     if (wa_enabled() && !$wa) {
         [$ok, $e] = wa_send($r);
         if ($ok) $wa = 1; else $errs[] = "wa: $e";
     }
-    $done = $email && (!wa_enabled() || $wa);
+    $done = $email && (!wa_enabled() || $wa) && (!$hasCust || $cust);
     $attempts = (int)$r['notify_attempts'] + 1;
     $next = ($done || $attempts >= REQ_MAX_ATTEMPTS) ? null : date('Y-m-d H:i:s', time() + min(21600, 300 * 2 ** ($attempts - 1)));
-    $pdo->prepare('UPDATE requests SET notified_email = ?, notified_wa = ?, notify_attempts = ?, notify_error = ?, next_retry_at = ? WHERE id = ?')
-        ->execute([$email, $wa, $attempts, mb_substr(implode(' | ', $errs), 0, 500), $next, $id]);
+    $pdo->prepare('UPDATE requests SET notified_email = ?, notified_wa = ?, notified_customer = ?, notify_attempts = ?, notify_error = ?, next_retry_at = ? WHERE id = ?')
+        ->execute([$email, $wa, $cust, $attempts, mb_substr(implode(' | ', $errs), 0, 500), $next, $id]);
 }
 
 /** يُستدعى من cron: يعيد محاولة الإشعارات المعلّقة */
@@ -284,13 +296,13 @@ function retry_request(array $b): never {
 }
 
 function export_requests(): never {
-    $rows = db()->query('SELECT order_no, created_at, name, phone, service, budget, timeline, details, status, note, utm_source, utm_medium, utm_campaign, utm_term, gclid, landing_url FROM requests ORDER BY id DESC')->fetchAll();
+    $rows = db()->query('SELECT order_no, created_at, name, phone, email, service, budget, timeline, details, status, note, utm_source, utm_medium, utm_campaign, utm_term, gclid, landing_url FROM requests ORDER BY id DESC')->fetchAll();
     header_remove('Content-Type');
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="requests-' . date('Ymd') . '.csv"');
     $o = fopen('php://output', 'w');
     fwrite($o, "\xEF\xBB\xBF");
-    fputcsv($o, ['order_no', 'created_at', 'name', 'phone', 'service', 'budget', 'timeline', 'details', 'status', 'note', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'gclid', 'landing_url']);
+    fputcsv($o, ['order_no', 'created_at', 'name', 'phone', 'email', 'service', 'budget', 'timeline', 'details', 'status', 'note', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'gclid', 'landing_url']);
     foreach ($rows as $r) { // يمنع تنفيذ الصيغ عند فتح الملف في Excel
         fputcsv($o, array_map(fn($v) => is_string($v) && preg_match('/^[=+\-@]/', $v) ? "'" . $v : $v, $r));
     }

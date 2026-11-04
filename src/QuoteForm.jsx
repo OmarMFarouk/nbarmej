@@ -10,10 +10,11 @@ const uuid = () =>
     return (c === 'x' ? r : (r & 3) | 8).toString(16)
   })
 
-const EMPTY = { service: [], budget: '', timeline: '', name: '', phone: '', details: '', company_site: '' }
+const EMPTY = { service: [], budget: '', timeline: '', name: '', phone: '', email: '', details: '', company_site: '' }
 const MSG = {
   name: 'اكتب اسمك',
   phone: 'اكتب رقم جوال صحيح، مثال: 05XXXXXXXX',
+  email: 'اكتب بريدًا صحيحًا مثل name@example.com، أو اتركه فارغًا',
   service: 'اختر خدمة واحدة على الأقل',
 }
 const SERVER_ERR = {
@@ -25,6 +26,7 @@ const validate = (f) => {
   const e = {}
   if (f.name.trim().length < 2) e.name = MSG.name
   if (f.phone.replace(/\D/g, '').length < 9) e.phone = MSG.phone
+  if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) e.email = MSG.email
   if (!f.service.length) e.service = MSG.service
   return e
 }
@@ -35,6 +37,7 @@ export function QuoteForm() {
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle') // idle | sending | done | error
   const [order, setOrder] = useState('')
+  const [sentTo, setSentTo] = useState('')
   const [failMsg, setFailMsg] = useState('')
   const key = useRef(uuid()) // مفتاح الإرسال: يمنع تكرار الطلب عند الضغط المتكرر أو إعادة المحاولة
   const shownAt = useRef(0) // وقت ظهور النموذج: الإرسال خلال أقل من ثانيتين يُعتبر آليًا
@@ -44,7 +47,7 @@ export function QuoteForm() {
 
   const set = (patch) => setF((s) => ({ ...s, ...patch }))
   const toggleService = (v) => set({ service: f.service.includes(v) ? f.service.filter((x) => x !== v) : [...f.service, v] })
-  const dirty = f.service.length > 0 || f.budget || f.timeline || f.name || f.phone || f.details
+  const dirty = f.service.length > 0 || f.budget || f.timeline || f.name || f.phone || f.email || f.details
 
   useEffect(() => {
     const el = sendRef.current
@@ -91,6 +94,7 @@ export function QuoteForm() {
       if (!r.ok || !j.ok) throw new Error(j.error || 'server')
       if (!j.dup) trackRequest(j.order_no) // التحويل بعد نجاح الحفظ فقط، وبدون تكرار
       setOrder(j.order_no)
+      setSentTo(f.email.trim())
       setStatus('done')
     } catch (err) {
       setFailMsg(SERVER_ERR[err.message] || 'تعذر إرسال الطلب الآن. حاول مرة أخرى، أو تواصل معنا مباشرة.')
@@ -103,6 +107,7 @@ export function QuoteForm() {
     shownAt.current = Date.now()
     setF(EMPTY)
     setErrors({})
+    setSentTo('')
     setStatus('idle')
   }
 
@@ -120,6 +125,7 @@ export function QuoteForm() {
           <div className="quote-form quote-ok" role="status" aria-live="polite">
             <strong>✓ وصلنا طلبك! بنراجعه ونتواصل معك بالخطوة الجاية.</strong>
             <p>رقم طلبك: <b dir="ltr">{order}</b></p>
+            {sentTo && <p className="muted">أرسلنا تأكيد الطلب إلى <b dir="ltr">{sentTo}</b></p>}
             <button type="button" className="btn btn-ghost" onClick={again}>إرسال طلب آخر</button>
           </div>
         ) : (
@@ -162,6 +168,10 @@ export function QuoteForm() {
                 {errors.phone && <span className="field-err" role="alert">{errors.phone}</span>}
               </label>
             </div>
+            <label>البريد الإلكتروني <span className="hint">(اختياري — نرسل لك تأكيد الطلب)</span>
+              <input value={f.email} onChange={(e) => set({ email: e.target.value })} placeholder="name@example.com" type="email" inputMode="email" autoComplete="email" dir="ltr" aria-invalid={!!errors.email} />
+              {errors.email && <span className="field-err" role="alert">{errors.email}</span>}
+            </label>
             <label>تفاصيل إضافية
               <input value={f.details} onChange={(e) => set({ details: e.target.value })} placeholder="جملة عن فكرتك" />
             </label>
