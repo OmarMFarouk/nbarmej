@@ -3,6 +3,9 @@
 declare(strict_types=1);
 if (!defined('DATA')) { http_response_code(404); exit; } // لا يُفتح مباشرة
 
+// الشعار يُرفق داخل الرسالة (cid) فيظهر دون الضغط على «عرض الصور»؛ وإن غاب الملف نستخدم الرابط
+const EM_LOGO_FILE = __DIR__ . '/../images/logo/logo-orange.png';
+const EM_LOGO_CID = 'nbarmej-logo';
 const EM_ORANGE = '#ff5a1f';
 const EM_INK = '#151515';
 const EM_DARK = '#0e0e0c';
@@ -63,7 +66,7 @@ function em_row(string $label, string $valueHtml): string {
 /** الهيكل العام: شريط علوي بالشعار، بطاقة المحتوى، تذييل بمعلومات الشركة */
 function em_layout(string $title, string $preheader, string $bodyHtml, string $note = ''): string {
     $b = brand_info();
-    $logo = SITE . '/images/logo/logo-orange.png';
+    $logo = is_file(EM_LOGO_FILE) ? 'cid:' . EM_LOGO_CID : SITE . '/images/logo/logo-orange.png';
     $contact = [];
     if ($b['phone']) $contact[] = '<a href="tel:' . h($b['phone']) . '" style="color:' . EM_INK . ';text-decoration:none" dir="ltr">' . h($b['phone']) . '</a>';
     if ($b['email']) $contact[] = '<a href="mailto:' . h($b['email']) . '" style="color:' . EM_INK . ';text-decoration:none" dir="ltr">' . h($b['email']) . '</a>';
@@ -81,7 +84,7 @@ function em_layout(string $title, string $preheader, string $bodyHtml, string $n
         . '<table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;font-family:\'Thmanyah Sans\',\'Segoe UI\',Tahoma,Arial,sans-serif">'
         // الشريط العلوي
         . '<tr><td height="6" bgcolor="' . EM_ORANGE . '" style="background:' . EM_ORANGE . ';height:6px;line-height:6px;font-size:0;border-radius:16px 16px 0 0">&nbsp;</td></tr>'
-        . '<tr><td align="center" bgcolor="' . EM_DARK . '" style="background:' . EM_DARK . ';padding:26px 24px"><a href="' . h(SITE) . '" target="_blank"><img src="' . h($logo) . '" width="190" alt="' . h($b['name']) . '" style="display:block;border:0;outline:none;width:190px;max-width:100%;height:auto"></a></td></tr>'
+        . '<tr><td align="center" bgcolor="' . EM_DARK . '" style="background:' . EM_DARK . ';padding:26px 24px"><a href="' . h(SITE) . '" target="_blank"><img src="' . h($logo) . '" width="190" alt="' . h($b['name']) . '" style="display:block;margin:0 auto;border:0;outline:none;width:190px;max-width:100%;height:auto;font:900 30px/1.4 \'Thmanyah Sans\',\'Segoe UI\',Tahoma,Arial,sans-serif;color:' . EM_ORANGE . ';text-align:center"></a></td></tr>'
         // البطاقة
         . '<tr><td class="px" bgcolor="#ffffff" style="background:#ffffff;padding:34px 36px 30px;color:' . EM_INK . ';text-align:right">' . $bodyHtml . '</td></tr>'
         // التذييل

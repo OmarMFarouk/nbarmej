@@ -17,6 +17,7 @@ function mime_message(string $from, string $fromName, string $to, string $subjec
         'MIME-Version: 1.0',
     ];
     if ($replyTo !== '') $headers[] = "Reply-To: <$replyTo>";
+    $logo = ($html !== '' && str_contains($html, 'cid:' . EM_LOGO_CID) && is_file(EM_LOGO_FILE)) ? file_get_contents(EM_LOGO_FILE) : '';
     if ($html === '') {
         $headers[] = 'Content-Type: text/plain; charset=UTF-8';
         $headers[] = 'Content-Transfer-Encoding: base64';
@@ -26,6 +27,12 @@ function mime_message(string $from, string $fromName, string $to, string $subjec
         $headers[] = 'Content-Type: multipart/alternative; boundary="' . $bd . '"';
         $part = fn(string $type, string $content) => "--$bd{$nl}Content-Type: $type; charset=UTF-8{$nl}Content-Transfer-Encoding: base64{$nl}{$nl}" . $b64($content);
         $payload = $part('text/plain', $text) . $part('text/html', $html) . "--$bd--{$nl}";
+        if ($logo !== '') { // الشعار مضمَّن: multipart/related يحوي (النص+HTML) ثم الصورة
+            $rel = 'nbr_rel_' . bin2hex(random_bytes(8));
+            $headers[count($headers) - 1] = 'Content-Type: multipart/related; type="multipart/alternative"; boundary="' . $rel . '"';
+            $img = "--$rel{$nl}Content-Type: image/png; name=\"logo.png\"{$nl}Content-Transfer-Encoding: base64{$nl}Content-ID: <" . EM_LOGO_CID . ">{$nl}Content-Disposition: inline; filename=\"logo.png\"{$nl}{$nl}" . $b64($logo);
+            $payload = "--$rel{$nl}Content-Type: multipart/alternative; boundary=\"$bd\"{$nl}{$nl}" . $payload . $img . "--$rel--{$nl}";
+        }
     }
     return implode($nl, $headers) . $nl . $nl . $payload;
 }
